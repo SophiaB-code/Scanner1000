@@ -3,6 +3,7 @@ package com.example.scanner1000
 import android.app.Application
 import android.graphics.Bitmap
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -24,8 +25,18 @@ class TextRecognizingViewModel (application: Application) : ViewModel() {
     private val allProducts: LiveData<List<Product>> = productDao.getProductsOrderedByName().asLiveData()
     var bitmap: MutableState<Bitmap?> = mutableStateOf(null)
     private var recognizedText by mutableStateOf("")
-//    var products = mutableStateOf(listOf<Product>())
-//        private set
+
+    private var _tempRecognizedProducts = mutableStateOf<List<Product>>(listOf())
+    val tempRecognizedProducts: State<List<Product>> = _tempRecognizedProducts
+
+    fun saveRecognizedProducts() = viewModelScope.launch {
+        _tempRecognizedProducts.value.forEach { product ->
+            productDao.upsertProduct(product)
+        }
+        // Opcjonalnie: wyczyść tymczasową listę po zapisie
+        _tempRecognizedProducts.value = listOf()
+    }
+
     fun addProduct(product: Product) = viewModelScope.launch {
       productDao.upsertProduct(product)
     }
@@ -71,12 +82,14 @@ class TextRecognizingViewModel (application: Application) : ViewModel() {
                         name = array[index],
                         price = price,
                         dateAdded = System.currentTimeMillis()
-                        // Usunięto id, Room zajmie się generowaniem ID
+
                     )
-                    viewModelScope.launch {
-                        productDao.upsertProduct(product)
-                    }
+                    products.add(product)
+//                    viewModelScope.launch {
+//                        productDao.upsertProduct(product)
+//                    }
                 }
+                _tempRecognizedProducts.value = products
 
 
                 recognizedText = products.joinToString(separator = "\n") { product ->

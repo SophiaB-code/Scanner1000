@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -28,6 +30,10 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
@@ -54,6 +60,8 @@ fun TextRecognitionScreen(
 
     val context = LocalContext.current as Activity
     val scrollState = rememberScrollState()
+    val products = textRecognizingViewModel.tempRecognizedProducts.value
+
 
     val imageCropLauncher =
         rememberLauncherForActivityResult(contract = CropImageContract()) { result ->
@@ -103,7 +111,7 @@ fun TextRecognitionScreen(
         Column(
             modifier = Modifier
                 .padding(paddingValues)
-                .verticalScroll(state = scrollState)
+              //  .verticalScroll(state = scrollState)
         ) {
             textRecognizingViewModel.bitmap.value?.let { bitmap ->
                 Image(
@@ -115,11 +123,18 @@ fun TextRecognitionScreen(
                 )
             }
 
-//            Column {
-//                textRecognizingViewModel.products.value.forEach { productItem ->
-//                    ProductButton(product = productItem, onProductClick = {})
-//                }
-//            }
+            LazyColumn {
+                items(products) { product ->
+                    ProductButton(product = product, onProductClick = {})
+
+                }
+            }
+
+            Button(onClick = { textRecognizingViewModel.saveRecognizedProducts()}) {
+                Text("Dodaj")
+
+            }
+
 
 
         }
