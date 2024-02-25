@@ -52,6 +52,16 @@ class MainActivity : ComponentActivity() {
         }
     )
 
+    private val viewModelText by viewModels<TextRecognizingViewModel> (
+        factoryProducer = {
+            object : ViewModelProvider.Factory {
+                override fun<T: ViewModel> create(modelClass: Class<T>): T {
+                    return TextRecognizingViewModel(application) as T
+                }
+            }
+        }
+    )
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -77,7 +87,8 @@ class MainActivity : ComponentActivity() {
                         composable("textRecognitionScreen") {
                             TextRecognitionScreen(
                                 navController = navController,
-                                viewModelCat
+                                viewModelText
+
                             )
                         }
                     }

@@ -2,7 +2,10 @@ package com.example.scanner1000.data
 
 import androidx.room.Dao
 import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
 
@@ -24,11 +27,13 @@ interface CategoryDao {
 @Dao
 interface ProductDao {
 
-    @Upsert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertProduct(category: Product)
 
     @Delete
     suspend fun deleteProduct(category: Product)
+
+
 
     @Query("SELECT * FROM product ORDER BY name ASC")
     fun getProductsOrderedByName(): Flow<List<Product>>
