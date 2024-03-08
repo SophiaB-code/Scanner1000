@@ -71,7 +71,7 @@ fun ChooseCategoryScreen(
                             Button(
                                     onClick = {
                                         if (selectedCategoryId != null) {
-                                            navController.navigate("textRecognitionScreen/${selectedCategoryId}")
+                                            navController.navigate("choosePhotoScreen/${selectedCategoryId}")
                                         }
                                         else {
                                             // Pokaż komunikat, że kategoria nie została wybrana

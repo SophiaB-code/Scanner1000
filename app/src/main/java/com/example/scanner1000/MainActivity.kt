@@ -19,6 +19,7 @@ import com.example.scanner1000.data.AppDatabase
 import com.example.scanner1000.data.category.CategoryViewModel
 import com.example.scanner1000.data.product.ProductViewModel
 import com.example.scanner1000.ui.screens.ChooseCategoryScreen
+import com.example.scanner1000.ui.screens.ChoosePhotoScreen
 import com.example.scanner1000.ui.screens.MainScreen
 import com.example.scanner1000.ui.screens.ReceiptsScreen
 import com.example.scanner1000.ui.screens.TextRecognitionScreen
@@ -98,6 +99,16 @@ class MainActivity : ComponentActivity() {
                         }
                         composable("chooseCategoryScreen") {
                             ChooseCategoryScreen(viewModelCat, navController)
+                        }
+                        composable(
+                                "choosePhotoScreen/{categoryId}",
+                                arguments = listOf(navArgument("categoryId") { type = NavType.IntType })
+                        ) { backStackEntry ->
+                            ChoosePhotoScreen(
+                                    navController = navController,
+                                    textRecognizingViewModel = viewModelText,
+                                    selectedCategoryId = backStackEntry.arguments?.getInt("categoryId")
+                            )
                         }
 
                     }
