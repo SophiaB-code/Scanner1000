@@ -14,7 +14,6 @@ import androidx.lifecycle.viewModelScope
 import com.example.scanner1000.data.AppDatabase
 import com.example.scanner1000.data.Product
 import com.example.scanner1000.data.ProductDao
-import com.example.scanner1000.data.product.ProductViewModel
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
@@ -29,11 +28,11 @@ class TextRecognizingViewModel (application: Application) : ViewModel() {
     private var _tempRecognizedProducts = mutableStateOf<List<Product>>(listOf())
     val tempRecognizedProducts: State<List<Product>> = _tempRecognizedProducts
 
-    fun saveRecognizedProducts() = viewModelScope.launch {
-        _tempRecognizedProducts.value.forEach { product ->
-            productDao.upsertProduct(product)
+    fun saveRecognizedProducts(selectedCategoryId: Int) = viewModelScope.launch {
+        _tempRecognizedProducts.value.forEach { tempProduct ->
+            val productWithCategory = tempProduct.copy(categoryFk = selectedCategoryId)
+            productDao.upsertProduct(productWithCategory)
         }
-        // Opcjonalnie: wyczyść tymczasową listę po zapisie
         _tempRecognizedProducts.value = listOf()
     }
 
@@ -49,11 +48,11 @@ class TextRecognizingViewModel (application: Application) : ViewModel() {
 
     fun updateBitmap(newBitmap: Bitmap) {
         bitmap.value = newBitmap
-        recognizeTextFromImage(newBitmap, this)
+        recognizeTextFromImage(newBitmap)
     }
 
 
-    private fun recognizeTextFromImage(bitmap: Bitmap, textRecognizingViewModel: TextRecognizingViewModel) {
+    private fun recognizeTextFromImage(bitmap: Bitmap) {
         val image = InputImage.fromBitmap(bitmap, 0)
         val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
 
@@ -81,13 +80,12 @@ class TextRecognizingViewModel (application: Application) : ViewModel() {
                     val product = Product(
                         name = array[index],
                         price = price,
-                        dateAdded = System.currentTimeMillis()
+                        dateAdded = System.currentTimeMillis(),
+                        categoryFk = 0
+
 
                     )
                     products.add(product)
-//                    viewModelScope.launch {
-//                        productDao.upsertProduct(product)
-//                    }
                 }
                 _tempRecognizedProducts.value = products
 
@@ -96,7 +94,6 @@ class TextRecognizingViewModel (application: Application) : ViewModel() {
                     "${product.name} | ${product.price}"
 
                 }
-                //ProductViewModel.updateProducts(products)
             }
             .addOnFailureListener { e ->
                 recognizedText = "Nie udało się rozpoznać tekstu: ${e.localizedMessage}"

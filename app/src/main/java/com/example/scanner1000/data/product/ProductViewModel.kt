@@ -48,7 +48,8 @@ class ProductViewModel(
                 val product = Product(
                     name = state.value.name.value,
                     price = state.value.price.value,
-                    dateAdded = System.currentTimeMillis()
+                    dateAdded = System.currentTimeMillis(),
+                    categoryFk = event.categoryFk
                 )
 
                 viewModelScope.launch {

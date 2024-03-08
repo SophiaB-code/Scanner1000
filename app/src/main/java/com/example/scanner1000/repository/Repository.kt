@@ -9,8 +9,7 @@ class Repository(
     private val productDao: ProductDao,
     private val categoryDao: CategoryDao
 ) {
-    fun getProductWithCategory(id: Int) = categoryDao
-        .getProductsWithCategory()
+
     suspend fun insertCategory(category: Category) {
         categoryDao.upsertCategory(category)
     }
@@ -22,9 +21,5 @@ class Repository(
     suspend fun deleteItem(product: Product) {
         productDao.deleteProduct(product)
     }
-
-//    suspend fun updateItem(item: Item) {
-//        itemDao.update(item)
-//    }
 
 }

@@ -9,6 +9,7 @@ sealed interface ProductEvent {
 
     data class SaveProduct(
         val name: String,
-        val price: Double
+        val price: Double,
+        val categoryFk: Int
     ): ProductEvent
 }

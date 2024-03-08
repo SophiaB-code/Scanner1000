@@ -19,6 +19,7 @@ data class Product (
     val name: String,
     val price: Double,
     val dateAdded: Long,
+    val categoryFk: Int,
 
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0

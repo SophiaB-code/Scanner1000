@@ -5,22 +5,24 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import androidx.room.Room
 import com.example.scanner1000.data.AppDatabase
 import com.example.scanner1000.data.category.CategoryViewModel
 import com.example.scanner1000.data.product.ProductViewModel
+import com.example.scanner1000.ui.screens.ChooseCategoryScreen
 import com.example.scanner1000.ui.screens.MainScreen
 import com.example.scanner1000.ui.screens.ReceiptsScreen
 import com.example.scanner1000.ui.screens.TextRecognitionScreen
-import com.example.scanner1000.ui.theme.Scanner1000Theme
+import com.example.scanner1000.ui.theme.AppTheme
 
 class MainActivity : ComponentActivity() {
 
@@ -65,11 +67,11 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            Scanner1000Theme {
+            AppTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    modifier = Modifier.fillMaxSize()
+                   // color = md_theme_light_background
                 ) {
                     val navController = rememberNavController()
 
@@ -84,13 +86,20 @@ class MainActivity : ComponentActivity() {
                                 viewModelCat
                             )
                         }
-                        composable("textRecognitionScreen") {
+                        composable(
+                            "textRecognitionScreen/{categoryId}",
+                            arguments = listOf(navArgument("categoryId") { type = NavType.IntType })
+                        ) { backStackEntry ->
                             TextRecognitionScreen(
                                 navController = navController,
-                                viewModelText
-
+                                textRecognizingViewModel = viewModelText,
+                                selectedCategoryId = backStackEntry.arguments?.getInt("categoryId")
                             )
                         }
+                        composable("chooseCategoryScreen") {
+                            ChooseCategoryScreen(viewModelCat, navController)
+                        }
+
                     }
                 }
             }

@@ -7,56 +7,61 @@ import android.provider.MediaStore
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardColors
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.canhub.cropper.CropImageContract
 import com.canhub.cropper.CropImageContractOptions
 import com.canhub.cropper.CropImageOptions
 import com.example.scanner1000.TextRecognizingViewModel
 import com.example.scanner1000.data.Product
-import com.example.scanner1000.data.category.CategoryEvent
-import com.example.scanner1000.data.category.CategoryViewModel
+import com.example.scanner1000.ui.theme.md_theme_light_background
+import com.example.scanner1000.ui.theme.md_theme_light_primary
+import com.example.scanner1000.ui.theme.md_theme_light_surface
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TextRecognitionScreen(
     navController: NavController,
-    textRecognizingViewModel: TextRecognizingViewModel){
+    textRecognizingViewModel: TextRecognizingViewModel,
+    selectedCategoryId: Int?
+    ){
 
     val context = LocalContext.current as Activity
     val scrollState = rememberScrollState()
@@ -105,43 +110,57 @@ fun TextRecognitionScreen(
                              )
                          }
                      })
+        },
+        bottomBar = {
+            if (products.isNotEmpty()) {
+            BottomAppBar (modifier = Modifier.height(IntrinsicSize.Min),
+                          containerColor = md_theme_light_background) {
+                    Button(
+                            modifier = Modifier
+                                    .padding(3.dp)
+                                    .fillMaxWidth()
+                                    .height(IntrinsicSize.Min),
+                            onClick = {
+                                if (selectedCategoryId != null) {
+                                    textRecognizingViewModel.saveRecognizedProducts(
+                                            selectedCategoryId
+                                    )
+                                }
+                                else {
+                                    // Obsługa przypadku, gdy kategoria nie została wybrana (opcjonalnie)
+                                }
+                            }) {
+                        Text("Dodaj")
+                    }
+                }
+            }
         }
     ) { paddingValues ->
 
         Column(
-            modifier = Modifier
-                .padding(paddingValues)
-              //  .verticalScroll(state = scrollState)
+                modifier = Modifier
+                        .padding(paddingValues)
+                        .verticalScroll(state = scrollState)
         ) {
             textRecognizingViewModel.bitmap.value?.let { bitmap ->
                 Image(
-                    bitmap = bitmap.asImageBitmap(),
-                    contentDescription = "Przycięte zdjęcie",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(10.dp)
+                        bitmap = bitmap.asImageBitmap(),
+                        contentDescription = "Przycięte zdjęcie",
+                        modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(10.dp)
                 )
             }
-
-            LazyColumn {
-                items(products) { product ->
+            Column {
+                products.forEach { product ->
                     ProductButton(product = product, onProductClick = {})
-
                 }
             }
-
-            Button(onClick = { textRecognizingViewModel.saveRecognizedProducts()}) {
-                Text("Dodaj")
-
-            }
-
-
-
         }
-
     }
 
 }
+
 
 @Composable
 fun ProductButton(
@@ -151,16 +170,66 @@ fun ProductButton(
     Button(
         onClick = { onProductClick(product) },
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 3.dp, end = 3.dp),
+                .fillMaxWidth()
+                .padding(start = 3.dp, end = 3.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = Color.White,
-            contentColor = Color.Black
+            containerColor = md_theme_light_surface,
+            contentColor = md_theme_light_primary
         ),
-        border = BorderStroke(1.dp, Color.Black),
+        border = BorderStroke(1.dp, md_theme_light_primary),
         shape = RectangleShape
     ) {
         Text("${product.name} | ${product.price}")
     }
 }
+
+@Composable
+fun GalleryAndCameraButton(
+    label: String,
+    imageVector: ImageVector,
+    onClick: () -> Unit,
+    contentDescription: String,
+    colors: CardColors
+) {
+    Card(
+            modifier = Modifier
+                    .clickable(onClick = onClick)
+                    .size(170.dp),
+            shape = RoundedCornerShape(20.dp),
+            colors = colors
+    ) {
+        Column (
+                modifier = Modifier
+                        .fillMaxSize()
+                        .padding(15.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+        ){
+            Row(
+                    modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 20.dp),
+                    verticalAlignment = Alignment.Top,
+                    horizontalArrangement = Arrangement.Center
+            ) {
+                Icon(
+                        imageVector = imageVector,
+                        contentDescription = contentDescription,
+                        modifier = Modifier
+                                .size(60.dp)
+                                .align(Alignment.Top),
+                        tint = Color.Black
+                )
+            }
+            Spacer(modifier = Modifier.height(20.dp))
+            Text(
+                    text = label,
+                    fontSize = MaterialTheme.typography.titleLarge.fontSize,
+                    textAlign = TextAlign.Start,
+                    color = Color.Black
+            )
+        }
+
+    }
+}
+
 

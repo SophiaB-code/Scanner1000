@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Scanner1000</string>
+    <string name="scanningTutorial">1. Wybierz kategorię lub dodaj nową 2. </string>
 </resources>
