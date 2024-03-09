@@ -18,6 +18,9 @@ interface CategoryDao {
     @Delete
     suspend fun deleteCategory(category: Category)
 
+    @Update
+    suspend fun updateCategory(category: Category)
+
     @Query("SELECT * FROM category ORDER BY dateAdded")
     fun getCategoryOrderedByDateAdded(): Flow<List<Category>>
 

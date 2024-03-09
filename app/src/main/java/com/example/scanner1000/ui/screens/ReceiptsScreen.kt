@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -16,6 +17,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
@@ -25,7 +27,9 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -36,12 +40,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.scanner1000.data.Category
 import com.example.scanner1000.data.category.CategoryEvent
 import com.example.scanner1000.data.category.CategoryViewModel
+import com.example.scanner1000.ui.theme.md_theme_light_secondaryContainer
 
 @Composable
 fun ReceiptsScreen(viewModel: CategoryViewModel)
@@ -70,7 +76,10 @@ fun ReceiptsScreen(viewModel: CategoryViewModel)
                                 containerColor = MaterialTheme.colorScheme.secondaryContainer,
                         ),
                         category = category,
-                        onDeleteCategory = { viewModel.onEvent(CategoryEvent.DeleteCategory(category)) }
+                        onDeleteCategory = { viewModel.onEvent(CategoryEvent.DeleteCategory(category)) },
+                        onEditCategory = { updatedCategory ->
+                            viewModel.onEvent(CategoryEvent.EditCategory(updatedCategory))
+                        }
                 )
 
             }
@@ -84,16 +93,21 @@ fun CategoryButton(
     contentDescription: String,
     colors: CardColors,
     category: Category,
-    onDeleteCategory: () -> Unit
+    onDeleteCategory: () -> Unit,
+    onEditCategory: (Category) -> Unit
 )
 {
     val context = LocalContext.current
     var expanded by remember { mutableStateOf(false) }
+    var isEditing by remember { mutableStateOf(false) }
+    var editingTitle by remember { mutableStateOf(category.title) }
+
+
 
     Card(
             modifier = Modifier
                     .fillMaxWidth()
-                    .height(60.dp)
+                    .height(if (isEditing) 80.dp else 60.dp)
                     .clickable(onClick = { }),
             shape = RoundedCornerShape(20.dp),
             colors = colors
@@ -103,20 +117,48 @@ fun CategoryButton(
                 modifier = Modifier
                         .fillMaxSize()
                         .padding(start = 12.dp),
-
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(
 
-                    text = category.title,
-                    fontSize = MaterialTheme.typography.titleLarge.fontSize,
-                    color = Color.Black,
-                    modifier = Modifier
-                            .weight(3f)
-                            .padding(8.dp),
+            if (!isEditing)
+            {
+                Text(
+                        text = category.title,
+                        fontSize = MaterialTheme.typography.titleLarge.fontSize,
+                        color = Color.Black,
+                        modifier = Modifier
+                                .weight(3f)
+                                .padding(8.dp)
+                )
+            }
+            else
+            {
+                OutlinedTextField(
+                        modifier = Modifier
+                                .weight(3f)
+                                .fillMaxHeight()
+                                .padding(bottom = 8.dp),
+                        label = { },
+                        value = editingTitle,
+                        onValueChange = { editingTitle = it },
+                        singleLine = true,
+                        textStyle = TextStyle(
+                                color = Color.Black,
+                                fontSize = MaterialTheme.typography.titleLarge.fontSize
+                        ),
+                        colors = TextFieldDefaults.colors(
+                                focusedContainerColor = md_theme_light_secondaryContainer,
+                                unfocusedContainerColor = md_theme_light_secondaryContainer,
+                                disabledContainerColor = md_theme_light_secondaryContainer,
+                        ),
+                        shape = RoundedCornerShape(20.dp)
 
-                    )
+
+                )
+            }
+
+
 
             Box(
                     modifier = Modifier
@@ -124,13 +166,28 @@ fun CategoryButton(
                             .padding(start = 25.dp)
             ) {
 
-
-                IconButton(onClick = { expanded = !expanded }) {
-                    Icon(
-                            imageVector = Icons.Filled.MoreVert,
-                            contentDescription = contentDescription,
-                            tint = Color.Black
-                    )
+                if (!isEditing)
+                {
+                    IconButton(onClick = { expanded = !expanded }) {
+                        Icon(
+                                imageVector = Icons.Filled.MoreVert,
+                                contentDescription = contentDescription,
+                                tint = Color.Black
+                        )
+                    }
+                }
+                else
+                {
+                    IconButton(onClick = {
+                        isEditing = false
+                        onEditCategory(category.copy(title = editingTitle))
+                    }) {
+                        Icon(
+                                imageVector = Icons.Filled.Done,
+                                contentDescription = contentDescription,
+                                tint = Color.Black
+                        )
+                    }
                 }
                 DropdownMenu(
                         expanded = expanded,
@@ -138,7 +195,10 @@ fun CategoryButton(
                 ) {
                     DropdownMenuItem(
                             text = { Text("Edytuj") },
-                            onClick = { expanded = false }
+                            onClick = {
+                                expanded = false
+                                isEditing = true
+                            }
                     )
                     DropdownMenuItem(
                             text = { Text("Usuń") },
@@ -149,6 +209,7 @@ fun CategoryButton(
                                 onDeleteCategory()
                             }
                     )
+
                 }
             }
 

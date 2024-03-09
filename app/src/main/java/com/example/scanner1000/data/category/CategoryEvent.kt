@@ -10,4 +10,6 @@ sealed interface CategoryEvent {
     data class SaveCategory(
         val title: String
     ): CategoryEvent
+
+    data class EditCategory(val category: Category): CategoryEvent
 }
