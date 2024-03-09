@@ -1,6 +1,7 @@
 package com.example.scanner1000.ui.screens
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -51,7 +52,8 @@ import com.example.scanner1000.ui.theme.md_theme_light_primaryContainer
 fun ChooseCategoryScreen(
     categoryViewModel: CategoryViewModel,
     navController: NavController
-) {
+)
+{
 
     val state = categoryViewModel.state.collectAsState().value
     var showAddDialog by remember { mutableStateOf(false) }
@@ -70,23 +72,17 @@ fun ChooseCategoryScreen(
                             Spacer(Modifier.weight(1f, true))
                             Button(
                                     onClick = {
-                                        if (selectedCategoryId != null) {
+                                        if (selectedCategoryId != null)
+                                        {
                                             navController.navigate("choosePhotoScreen/${selectedCategoryId}")
                                         }
-                                        else {
+                                        else
+                                        {
                                             // Pokaż komunikat, że kategoria nie została wybrana
                                         }
                                     },
                             ) {
                                 Text("Skanuj paragon")
-                            }
-                            Spacer(Modifier.weight(1f, true))
-
-                            IconButton(onClick = { showAddDialog = true }) {
-                                Icon(
-                                        imageVector = Icons.Rounded.Add,
-                                        contentDescription = "Dodaj kategorię"
-                                )
                             }
                         }
                 )
@@ -96,10 +92,11 @@ fun ChooseCategoryScreen(
 
         Column(
                 modifier = Modifier
-                    .padding(paddingValues)
-                    .fillMaxSize()
+                        .padding(paddingValues)
+                        .fillMaxSize()
         ) {
-            if (showAddDialog) {
+            if (showAddDialog)
+            {
                 AddAlertDialog(
                         onDismiss = { showAddDialog = false },
                         categoryViewModel = categoryViewModel,
@@ -110,16 +107,16 @@ fun ChooseCategoryScreen(
             }
             Card(
                     modifier = Modifier
-                        .padding(10.dp)
-                        .fillMaxWidth(),
+                            .padding(10.dp)
+                            .fillMaxWidth(),
                     colors = CardDefaults.cardColors(
                             containerColor = MaterialTheme.colorScheme.tertiaryContainer,
                     )
             ) {
                 Row(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(15.dp)
+                                .fillMaxWidth()
+                                .padding(15.dp)
                 ) {
                     Icon(imageVector = Icons.Rounded.Lightbulb, contentDescription = "tutorial")
                     Spacer(modifier = Modifier.width(5.dp))
@@ -128,21 +125,36 @@ fun ChooseCategoryScreen(
             }
             Card(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(10.dp),
+                            .fillMaxWidth()
+                            .padding(10.dp),
                     colors = CardDefaults.cardColors(
                             containerColor = MaterialTheme.colorScheme.primaryContainer,
                     )
             ) {
                 Column(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(15.dp)
+                                .fillMaxWidth()
+                                .padding(15.dp)
                 ) {
-                    Text(
-                            text = "Kategorie",
-                            fontSize = 20.sp
-                    )
+                    Row {
+                        Text(
+                                text = "Kategorie",
+                                fontSize = 20.sp,
+                                modifier = Modifier.weight(5f).padding(10.dp)
+                        )
+                        Box(modifier = Modifier.weight(1f)) {
+                            IconButton(
+                                    onClick = { showAddDialog = true }
+                            ) {
+                                Icon(
+                                        imageVector = Icons.Rounded.Add,
+                                        contentDescription = "Dodaj kategorię"
+                                )
+                            }
+                        }
+
+                    }
+
                     Spacer(modifier = Modifier.height(10.dp))
                     LazyColumn {
                         items(state.categories) { category ->
@@ -169,12 +181,13 @@ fun AddAlertDialog(
     onDismiss: () -> Unit,
     categoryViewModel: CategoryViewModel,
     onSave: (String) -> Unit
-) {
+)
+{
     Dialog(onDismissRequest = { onDismiss() }) {
         Surface(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
+                        .fillMaxWidth()
+                        .padding(16.dp),
                 shape = MaterialTheme.shapes.medium,
                 color = MaterialTheme.colorScheme.surface
         ) {
@@ -189,14 +202,14 @@ fun AddAlertDialog(
                         text = "Dodaj kategorię",
                         style = MaterialTheme.typography.bodyLarge,
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(5.dp)
+                                .fillMaxWidth()
+                                .padding(5.dp)
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 OutlinedTextField(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
+                                .fillMaxWidth()
+                                .padding(16.dp),
                         value = state.title.value,
                         onValueChange = {
                             state.title.value = it
@@ -208,7 +221,8 @@ fun AddAlertDialog(
                         label = { Text("Nazwa") },
                         isError = errorMessage != null
                 )
-                if (errorMessage != null) {
+                if (errorMessage != null)
+                {
                     Text(
                             text = errorMessage ?: "",
                             color = Color.Red,
@@ -227,10 +241,12 @@ fun AddAlertDialog(
                     Spacer(modifier = Modifier.width(8.dp))
                     TextButton(
                             onClick = {
-                                if (state.title.value.isBlank()) {
+                                if (state.title.value.isBlank())
+                                {
                                     errorMessage = "Wpisz nazwę"
                                 }
-                                else {
+                                else
+                                {
                                     onSave(state.title.value)
                                 }
                             },
@@ -246,15 +262,16 @@ fun AddAlertDialog(
 
 
 @Composable
-fun CategoryButton(category: Category, isSelected: Boolean, onSelectCategory: (Int) -> Unit) {
+fun CategoryButton(category: Category, isSelected: Boolean, onSelectCategory: (Int) -> Unit)
+{
     Card(
             colors = CardDefaults.cardColors(
                     containerColor = if (isSelected) md_theme_light_onPrimaryContainer else md_theme_light_primaryContainer
             ),
             modifier = Modifier
-                .fillMaxWidth()
-                //.padding(2.dp)
-                .clickable { onSelectCategory(category.id) }
+                    .fillMaxWidth()
+                    //.padding(2.dp)
+                    .clickable { onSelectCategory(category.id) }
     ) {
         Text(
                 text = category.title,
