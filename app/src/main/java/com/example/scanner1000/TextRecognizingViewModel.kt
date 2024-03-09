@@ -50,7 +50,11 @@ class TextRecognizingViewModel (application: Application) : ViewModel() {
         bitmap.value = newBitmap
         recognizeTextFromImage(newBitmap)
     }
-
+    fun clearData() {
+        // Resetuj wszystkie interesujące Cię dane
+        bitmap.value = null
+        _tempRecognizedProducts.value = listOf()
+    }
 
     private fun recognizeTextFromImage(bitmap: Bitmap) {
         val image = InputImage.fromBitmap(bitmap, 0)
