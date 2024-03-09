@@ -9,6 +9,7 @@ import com.example.scanner1000.data.ProductDao
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
@@ -34,6 +35,9 @@ class ProductViewModel(
                 products = products
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ProductState())
+
+    private val _productsWithCategory = MutableStateFlow<List<Product>>(emptyList())
+    val productsWithCategory: StateFlow<List<Product>> = _productsWithCategory
 
 
     fun onEvent(event: ProductEvent) {
@@ -69,4 +73,13 @@ class ProductViewModel(
         }
     }
 
-}
+    fun getProductsWithCategory(categoryId: Int) {
+        viewModelScope.launch {
+            dao.getProductsWithCategory(categoryId).collect { products ->
+                _productsWithCategory.value = products
+                }
+            }
+        }
+    }
+
+

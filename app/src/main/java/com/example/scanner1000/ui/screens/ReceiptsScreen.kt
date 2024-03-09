@@ -44,15 +44,22 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.scanner1000.data.Category
 import com.example.scanner1000.data.category.CategoryEvent
 import com.example.scanner1000.data.category.CategoryViewModel
+import com.example.scanner1000.data.product.ProductViewModel
 import com.example.scanner1000.ui.theme.md_theme_light_secondaryContainer
 
 @Composable
-fun ReceiptsScreen(viewModel: CategoryViewModel)
+fun ReceiptsScreen(
+    categoryViewModel: CategoryViewModel,
+    productViewModel: ProductViewModel,
+    navController: NavController
+)
 {
-    val state = viewModel.state.collectAsState().value
+
+    val state = categoryViewModel.state.collectAsState().value
     Column(
             modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -71,15 +78,23 @@ fun ReceiptsScreen(viewModel: CategoryViewModel)
         ) {
             items(state.categories) { category ->
                 CategoryButton(
+                        viewModel = productViewModel,
                         contentDescription = "Kategoria",
                         colors = CardDefaults.cardColors(
                                 containerColor = MaterialTheme.colorScheme.secondaryContainer,
                         ),
                         category = category,
-                        onDeleteCategory = { viewModel.onEvent(CategoryEvent.DeleteCategory(category)) },
+                        onDeleteCategory = {
+                            categoryViewModel.onEvent(
+                                    CategoryEvent.DeleteCategory(
+                                            category
+                                    )
+                            )
+                        },
                         onEditCategory = { updatedCategory ->
-                            viewModel.onEvent(CategoryEvent.EditCategory(updatedCategory))
-                        }
+                            categoryViewModel.onEvent(CategoryEvent.EditCategory(updatedCategory))
+                        },
+                        navController = navController
                 )
 
             }
@@ -90,11 +105,13 @@ fun ReceiptsScreen(viewModel: CategoryViewModel)
 
 @Composable
 fun CategoryButton(
+    viewModel: ProductViewModel,
     contentDescription: String,
     colors: CardColors,
     category: Category,
     onDeleteCategory: () -> Unit,
-    onEditCategory: (Category) -> Unit
+    onEditCategory: (Category) -> Unit,
+    navController: NavController
 )
 {
     val context = LocalContext.current
@@ -102,13 +119,17 @@ fun CategoryButton(
     var isEditing by remember { mutableStateOf(false) }
     var editingTitle by remember { mutableStateOf(category.title) }
 
-
-
     Card(
             modifier = Modifier
                     .fillMaxWidth()
                     .height(if (isEditing) 80.dp else 60.dp)
-                    .clickable(onClick = { }),
+                    .clickable(onClick = {
+                        if (!isEditing)
+                        {
+                            viewModel.getProductsWithCategory(category.id)
+                            navController.navigate("productsWithCategoryScreen/${category.id}")
+                        }
+                    }),
             shape = RoundedCornerShape(20.dp),
             colors = colors
     ) {
@@ -157,9 +178,6 @@ fun CategoryButton(
 
                 )
             }
-
-
-
             Box(
                     modifier = Modifier
                             .weight(1f)

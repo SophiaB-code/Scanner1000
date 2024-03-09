@@ -25,5 +25,14 @@ data class Product (
     val id: Int = 0
 )
 
+@Entity(tableName = "friend")
+data class Friend (
+    val name: String,
+    val balance: Double,
+
+    @PrimaryKey(autoGenerate = true)
+    val id: Int = 0
+)
+
 
 
