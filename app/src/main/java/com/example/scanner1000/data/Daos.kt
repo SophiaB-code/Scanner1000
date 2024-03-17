@@ -62,7 +62,5 @@ interface FriendDao {
     @Query("SELECT * FROM friend ORDER BY name ASC")
     fun getAllFriends(): Flow<List<Friend>>
 
-    @Query("SELECT * FROM friend WHERE id = :friendId")
-    fun getFriendById(friendId: Int): Flow<Friend>
 
 }
