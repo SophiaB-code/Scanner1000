@@ -28,6 +28,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -42,9 +43,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.example.scanner1000.data.Friend
+import com.example.scanner1000.data.friend.FriendEvent
 import com.example.scanner1000.data.friend.FriendViewModel
 import com.example.scanner1000.data.product.ProductViewModel
 
@@ -71,15 +76,15 @@ fun ProductsWithCategoryScreen(
         bottomBar = {
             BottomAppBar {
 
-                if (showSplitDialog)
-                {
+                if (showSplitDialog) {
                     SplitAlertDialog(
                         onDismiss = { showSplitDialog = false },
                         friendViewModel = friendViewModel,
                     )
                 }
                 Button(
-                    onClick = { showSplitDialog = true
+                    onClick = {
+                        showSplitDialog = true
                     },
                     Modifier
                         .fillMaxSize()
@@ -264,6 +269,7 @@ fun SplitAlertDialog(
 //    onSave: (String) -> Unit
 ) {
     val state = friendViewModel.state.collectAsState().value
+    var showAddDialog by remember { mutableStateOf(false) }
 
     Dialog(onDismissRequest = { onDismiss() }) {
         Surface(
@@ -290,8 +296,17 @@ fun SplitAlertDialog(
                         FriendCheckbox(friend = friend)
                     }
                 }
+                if(showAddDialog ) {
+                    AddFriendDialog(
+                        onDismiss = { showAddDialog = false },
+                        friendViewModel = friendViewModel,
+                        onSave = {name ->
+                            friendViewModel.onEvent(FriendEvent.SaveFriend(name = name, balance = 0.0))
+                        }
+                    )
+                }
                 Row {
-                    TextButton(onClick = { /*TODO*/ }) {
+                    TextButton(onClick = { showAddDialog = true }) {
                         Icon(imageVector = Icons.Filled.Add, contentDescription = "")
                         Spacer(modifier = Modifier.width(3.dp))
                         Text(text = "dodaj znajomego")
@@ -328,5 +343,85 @@ fun FriendCheckbox(friend: Friend) {
     ) {
         Checkbox(checked = checkedState.value, onCheckedChange = { checkedState.value = it })
         Text(text = friend.name)
+    }
+}
+
+@Composable
+fun AddFriendDialog(
+    onDismiss: () -> Unit,
+    friendViewModel: FriendViewModel,
+    onSave: (String) -> Unit
+) {
+    Dialog(onDismissRequest = { onDismiss() }) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            shape = MaterialTheme.shapes.medium,
+            color = MaterialTheme.colorScheme.surface
+        ) {
+            Column(
+                modifier = Modifier.padding(12.dp)
+            )
+            {
+                val state = friendViewModel.state.collectAsState().value
+                var errorMessage by remember { mutableStateOf<String?>(null) }
+
+                Text(
+                    text = "Dodaj znajomego",
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(5.dp)
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                OutlinedTextField(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(6.dp),
+                    value = state.name.value,
+                    onValueChange = {
+                        state.name.value = it
+                    },
+                    textStyle = TextStyle(
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 17.sp
+                    ),
+                    label = { Text("Imię") },
+                    isError = errorMessage != null
+                )
+                if (errorMessage != null) {
+                    Text(
+                        text = errorMessage ?: "",
+                        color = Color.Red,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                Row {
+                    TextButton(
+                        onClick = { onDismiss() },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Anuluj")
+                    }
+                    Spacer(modifier = Modifier.width(80.dp))
+                    TextButton(
+                        onClick = {
+                            if (state.name.value.isBlank()) {
+                                errorMessage = "Pole imię nie może być puste"
+                            } else {
+                                onSave(state.name.value)
+                            }
+                            onDismiss()
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Dodaj")
+                    }
+                }
+            }
+        }
     }
 }
