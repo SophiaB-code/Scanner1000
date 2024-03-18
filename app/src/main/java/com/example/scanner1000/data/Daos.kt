@@ -42,6 +42,16 @@ interface ProductDao {
     fun getProductsOrderedByName(): Flow<List<Product>>
 
     @Query("""  SELECT * FROM product 
+    WHERE isSplit = 1
+    ORDER BY name ASC """)
+    fun getSplitProducts(): Flow<List<Product>>
+
+    @Query("""  SELECT * FROM product 
+    WHERE isSplit = 0
+    ORDER BY name ASC """)
+    fun getNotSplitProducts(): Flow<List<Product>>
+
+    @Query("""  SELECT * FROM product 
     WHERE categoryFk = :categoryId 
     ORDER BY name ASC """)
     fun getProductsWithCategory(categoryId:Int): Flow<List<Product>>

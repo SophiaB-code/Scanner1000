@@ -8,6 +8,7 @@ data class ProductState(
 
     val products: List<Product> = emptyList(),
     val name: MutableState<String> = mutableStateOf(""),
-    val price: MutableState<Double> = mutableStateOf(00.00)
+    val price: MutableState<Double> = mutableStateOf(00.00),
+    val isSplit: MutableState<Int> = mutableStateOf(0)
 
 )

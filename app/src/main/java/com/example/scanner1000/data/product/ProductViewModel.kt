@@ -53,7 +53,8 @@ class ProductViewModel(
                     name = state.value.name.value,
                     price = state.value.price.value,
                     dateAdded = System.currentTimeMillis(),
-                    categoryFk = event.categoryFk
+                    categoryFk = event.categoryFk,
+                    isSplit = state.value.isSplit.value
                 )
 
                 viewModelScope.launch {
