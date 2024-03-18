@@ -137,8 +137,9 @@ class MainActivity : ComponentActivity() {
                             backStackEntry.arguments?.let {
                                 ProductsWithCategoryScreen(
                                     categoryId = it.getInt("category.id"),
-                                    viewModelPro,
-                                    viewModelFriend
+                                    viewModelFriend,
+                                    viewModelPro
+
                                 )
                             }
                         }

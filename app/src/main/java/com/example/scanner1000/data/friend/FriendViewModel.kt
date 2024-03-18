@@ -75,4 +75,9 @@ class FriendViewModel(private val dao: FriendDao) : ViewModel() {
         }
 
     }
+
+    fun setFriendChecked(friend: Friend, isChecked: Boolean) = viewModelScope.launch {
+        dao.updateFriendIsChecked(friend.id, isChecked)
+        // Możesz też aktualizować stan w pamięci, jeśli trzymasz tam listę produktów
+    }
 }

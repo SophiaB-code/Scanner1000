@@ -23,7 +23,7 @@ class ProductViewModel(
     private val isSortedByName = MutableStateFlow(true)
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private var products =
+    var products =
         isSortedByName.flatMapLatest {
                 dao.getProductsOrderedByName()
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
@@ -71,6 +71,8 @@ class ProductViewModel(
             ProductEvent.SortProducts -> {
                 isSortedByName.value = !isSortedByName.value
             }
+
+            else -> {}
         }
     }
 
@@ -81,6 +83,12 @@ class ProductViewModel(
                 }
             }
         }
+
+    fun setProductChecked(product: Product, isChecked: Boolean) = viewModelScope.launch {
+        dao.updateProductIsChecked(product.id, isChecked)
+        // Możesz też aktualizować stan w pamięci, jeśli trzymasz tam listę produktów
+    }
+
     }
 
 

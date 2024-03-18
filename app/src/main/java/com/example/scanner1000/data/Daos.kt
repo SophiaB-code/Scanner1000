@@ -36,7 +36,8 @@ interface ProductDao {
     @Delete
     suspend fun deleteProduct(product: Product)
 
-
+    @Query("UPDATE product SET isChecked = :isChecked WHERE id = :productId")
+    suspend fun updateProductIsChecked(productId: Int, isChecked: Boolean)
 
     @Query("SELECT * FROM product ORDER BY name ASC")
     fun getProductsOrderedByName(): Flow<List<Product>>
@@ -71,6 +72,9 @@ interface FriendDao {
 
     @Query("SELECT * FROM friend ORDER BY name ASC")
     fun getAllFriends(): Flow<List<Friend>>
+
+    @Query("UPDATE friend SET isChecked = :isChecked WHERE id = :friendId")
+    suspend fun updateFriendIsChecked(friendId: Int, isChecked: Boolean)
 
 
 }

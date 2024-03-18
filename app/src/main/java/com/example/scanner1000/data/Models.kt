@@ -21,6 +21,7 @@ data class Product (
     val dateAdded: Long,
     val categoryFk: Int,
     val isSplit: Int,
+    val isChecked: Boolean = false,
 
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0
@@ -30,6 +31,7 @@ data class Product (
 data class Friend (
     val name: String,
     val balance: Double,
+    val isChecked: Boolean = false,
 
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0

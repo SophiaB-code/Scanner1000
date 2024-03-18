@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.example.scanner1000.data.Friend
+import com.example.scanner1000.data.Product
 import com.example.scanner1000.data.friend.FriendEvent
 import com.example.scanner1000.data.friend.FriendViewModel
 import com.example.scanner1000.data.product.ProductViewModel
@@ -58,15 +59,15 @@ import com.example.scanner1000.data.product.ProductViewModel
 @Composable
 fun ProductsWithCategoryScreen(
     categoryId: Int,
-    viewModel: ProductViewModel,
-    friendViewModel: FriendViewModel
+    friendViewModel: FriendViewModel,
+    productViewModel: ProductViewModel
 ) {
     // Przykład załadowania produktów dla danej kategorii
     LaunchedEffect(categoryId) {
-        viewModel.getProductsWithCategory(categoryId)
+        productViewModel.getProductsWithCategory(categoryId)
     }
 
-    val products = viewModel.productsWithCategory.collectAsState()
+    val products = productViewModel.productsWithCategory.collectAsState()
     var allSelected by remember { mutableStateOf(false) }
     var splitSelected by remember { mutableStateOf(false) }
     var notSplitSelected by remember { mutableStateOf(false) }
@@ -193,9 +194,11 @@ fun ProductsWithCategoryScreen(
                 ) {
                     items(products.value) { product ->
                         ProductButton(
-                            name = product.name,
-                            price = product.price
+                            product = product,
+                            productViewModel
                         )
+
+
                     }
                 }
             }
@@ -208,10 +211,9 @@ fun ProductsWithCategoryScreen(
 
 @Composable
 fun ProductButton(
-    name: String,
-    price: Double
+    product: Product,
+    productViewModel: ProductViewModel
 ) {
-    val checkedState = remember { mutableStateOf(true) }
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -233,7 +235,7 @@ fun ProductButton(
         ) {
             Text(
 
-                text = name,
+                text = product.name,
                 fontSize = MaterialTheme.typography.titleMedium.fontSize,
                 color = Color.Black,
                 modifier = Modifier
@@ -244,7 +246,7 @@ fun ProductButton(
 
             Text(
 
-                text = price.toString(),
+                text = product.price.toString(),
                 fontSize = MaterialTheme.typography.titleMedium.fontSize,
                 color = Color.Black,
                 modifier = Modifier
@@ -253,7 +255,10 @@ fun ProductButton(
 
                 )
 
-            Checkbox(checked = checkedState.value, onCheckedChange = { checkedState.value = it })
+            Checkbox(checked = product.isChecked,
+                onCheckedChange = { isChecked ->
+                    productViewModel.setProductChecked(product, isChecked)
+                })
 
         }
 
@@ -262,11 +267,11 @@ fun ProductButton(
 
 }
 
+
 @Composable
 fun SplitAlertDialog(
     onDismiss: () -> Unit,
-    friendViewModel: FriendViewModel,
-//    onSave: (String) -> Unit
+    friendViewModel: FriendViewModel
 ) {
     val state = friendViewModel.state.collectAsState().value
     var showAddDialog by remember { mutableStateOf(false) }
@@ -293,15 +298,21 @@ fun SplitAlertDialog(
                 Spacer(modifier = Modifier.height(10.dp))
                 LazyColumn {
                     items(state.friends) { friend ->
-                        FriendCheckbox(friend = friend)
+                        FriendCheckbox(friend = friend, friendViewModel)
                     }
                 }
-                if(showAddDialog ) {
+                if (showAddDialog) {
                     AddFriendDialog(
                         onDismiss = { showAddDialog = false },
                         friendViewModel = friendViewModel,
-                        onSave = {name ->
-                            friendViewModel.onEvent(FriendEvent.SaveFriend(name = name, balance = 0.0))
+                        onSave = { name ->
+                            friendViewModel.onEvent(
+                                FriendEvent.SaveFriend(
+                                    name = name,
+                                    balance = 0.0,
+                                    isChecked = false
+                                )
+                            )
                         }
                     )
                 }
@@ -336,12 +347,15 @@ fun SplitAlertDialog(
 }
 
 @Composable
-fun FriendCheckbox(friend: Friend) {
-    val checkedState = remember { mutableStateOf(true) }
+fun FriendCheckbox(friend: Friend, friendViewModel: FriendViewModel) {
+
     Row(
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Checkbox(checked = checkedState.value, onCheckedChange = { checkedState.value = it })
+        Checkbox(checked = friend.isChecked,
+            onCheckedChange = { isChecked ->
+                friendViewModel.setFriendChecked(friend, isChecked)
+            })
         Text(text = friend.name)
     }
 }
