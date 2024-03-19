@@ -8,7 +8,7 @@ data class FriendState(
 
     val friends: List<Friend> = emptyList(),
     val name: MutableState<String> = mutableStateOf(""),
-    val balance: MutableState<Double> = mutableStateOf(0.0),
+    val balance: MutableState<Double> = mutableStateOf(00.00),
     val isChecked: MutableState<Boolean> = mutableStateOf(false)
 
     )

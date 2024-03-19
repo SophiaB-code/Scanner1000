@@ -73,12 +73,14 @@ dependencies {
     //additional icons
     implementation("androidx.compose.material:material-icons-extended:1.6.1")
     //navigation
-    implementation ("androidx.navigation:navigation-compose:2.7.7")
+    implementation("androidx.navigation:navigation-compose:2.7.7")
     //text recognition
-    implementation ("com.google.mlkit:text-recognition:16.0.0")
+    implementation("com.google.mlkit:text-recognition:16.0.0")
     // Room
     val roomVersion = "2.6.1"
     implementation("androidx.room:room-runtime:$roomVersion")
     implementation("androidx.room:room-ktx:$roomVersion")
     kapt("androidx.room:room-compiler:$roomVersion")
+    //ScrollBar
+    implementation("com.github.nanihadesuka:LazyColumnScrollbar:1.10.0")
 }

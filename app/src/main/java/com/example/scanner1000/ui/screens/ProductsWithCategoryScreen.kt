@@ -19,6 +19,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.outlined.LibraryAddCheck
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -28,6 +31,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -35,6 +39,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -45,6 +50,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -54,12 +60,14 @@ import com.example.scanner1000.data.Product
 import com.example.scanner1000.data.friend.FriendEvent
 import com.example.scanner1000.data.friend.FriendViewModel
 import com.example.scanner1000.data.product.ProductViewModel
+import com.example.scanner1000.ui.theme.Rubik
 import java.math.RoundingMode
 
 
-@OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
 fun ProductsWithCategoryScreen(
+    productId: Int,
     categoryId: Int,
     friendViewModel: FriendViewModel,
     productViewModel: ProductViewModel
@@ -69,34 +77,46 @@ fun ProductsWithCategoryScreen(
         productViewModel.getProductsWithCategory(categoryId)
     }
 
-    val products = productViewModel.productsWithCategory.collectAsState()
+    val products = productViewModel.productsWithCategory.collectAsState().value
+
+    var filteredProducts = products
+
     var allSelected by remember { mutableStateOf(false) }
-    var splitSelected by remember { mutableStateOf(false) }
+    var splitSelected by remember { mutableStateOf(true) }
     var notSplitSelected by remember { mutableStateOf(false) }
     var showSplitDialog by remember { mutableStateOf(false) }
 
+    filteredProducts = when {
+        splitSelected -> products.filter { !it.isSplit }
+        notSplitSelected -> products.filter { it.isSplit }
+        else -> products
+    }
+
     Scaffold(
         bottomBar = {
-            BottomAppBar {
+            if (notSplitSelected) {
+                BottomAppBar {
 
-                if (showSplitDialog) {
-                    SplitAlertDialog(
-                        onDismiss = { showSplitDialog = false },
-                        friendViewModel = friendViewModel,
-                        productViewModel
-                    )
-                }
-                Button(
-                    onClick = {
-                        showSplitDialog = true
-                    },
-                    Modifier
-                        .fillMaxSize()
-                        .padding(5.dp)
-                ) {
-                    Text(text = "Podziel")
-                }
+                    if (showSplitDialog) {
+                        SplitAlertDialog(
+                            productId = productId,
+                            onDismiss = { showSplitDialog = false },
+                            friendViewModel = friendViewModel,
+                            productViewModel
+                        )
+                    }
+                    Button(
+                        onClick = {
+                            showSplitDialog = true
+                        },
+                        Modifier
+                            .fillMaxSize()
+                            .padding(5.dp)
+                    ) {
+                        Text(text = "Podziel")
+                    }
 
+                }
             }
         }
     ) { paddingValues ->
@@ -105,11 +125,43 @@ fun ProductsWithCategoryScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            Text(
-                text = "Produkty",
-                fontSize = MaterialTheme.typography.titleLarge.fontSize,
-                modifier = Modifier.padding(bottom = 10.dp, top = 10.dp, start = 20.dp)
-            )
+            Row(Modifier.fillMaxWidth()) {
+                Text(
+                    text = "Produkty",
+                    fontSize = MaterialTheme.typography.titleLarge.fontSize,
+                    fontFamily = Rubik,
+                    fontStyle = FontStyle.Normal,
+                    fontWeight = FontWeight.Light,
+                    modifier = Modifier.padding(bottom = 10.dp, top = 10.dp, start = 20.dp).weight(3f)
+                )
+                if (notSplitSelected) {
+                    IconButton(
+                        onClick = { /*TODO*/ },
+                        modifier = Modifier.weight(1f).padding(start = 5.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.LibraryAddCheck,
+                            contentDescription = "",
+                            modifier = Modifier.size(30.dp)
+                        )
+                    }
+                }
+                if (allSelected) {
+
+                    IconButton(
+                        onClick = { /*TODO*/ },
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(start = 5.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Add,
+                            contentDescription = "",
+                            modifier = Modifier.size(30.dp)
+                        )
+                    }
+                }
+            }
             LazyRow(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -118,7 +170,11 @@ fun ProductsWithCategoryScreen(
                 ) {
                 item {
                     FilterChip(
-                        onClick = { allSelected = !allSelected },
+                        onClick = {
+                            allSelected = true
+                            splitSelected = false
+                            notSplitSelected = false
+                        },
                         modifier = Modifier.padding(start = 10.dp),
                         label = {
                             Text("Wszystkie")
@@ -139,13 +195,17 @@ fun ProductsWithCategoryScreen(
                 }
                 item {
                     FilterChip(
-                        onClick = { splitSelected = !splitSelected },
+                        onClick = {
+                            allSelected = false
+                            splitSelected = false
+                            notSplitSelected = true
+                        },
                         modifier = Modifier.padding(start = 10.dp),
                         label = {
                             Text("Niepodzielone")
                         },
-                        selected = splitSelected,
-                        leadingIcon = if (splitSelected) {
+                        selected = notSplitSelected,
+                        leadingIcon = if (notSplitSelected) {
                             {
                                 Icon(
                                     imageVector = Icons.Filled.Done,
@@ -160,13 +220,17 @@ fun ProductsWithCategoryScreen(
                 }
                 item {
                     FilterChip(
-                        onClick = { notSplitSelected = !notSplitSelected },
+                        onClick = {
+                            allSelected = false
+                            splitSelected = true
+                            notSplitSelected = false
+                        },
                         modifier = Modifier.padding(start = 10.dp),
                         label = {
                             Text("Podzielone")
                         },
-                        selected = notSplitSelected,
-                        leadingIcon = if (notSplitSelected) {
+                        selected = splitSelected,
+                        leadingIcon = if (splitSelected) {
                             {
                                 Icon(
                                     imageVector = Icons.Filled.Done,
@@ -191,22 +255,69 @@ fun ProductsWithCategoryScreen(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
                 )
             ) {
-                LazyColumn(
-                    contentPadding = PaddingValues(top = 12.dp, end = 12.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(products.value) { product ->
-                        ProductButton(
-                            product = product,
-                            productViewModel
-                        )
+                if (allSelected) {
+                    LazyColumn(
+                        contentPadding = PaddingValues(top = 12.dp, end = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(filteredProducts) { product ->
+                            ProductButton(
+                                product = product,
+                                productViewModel,
+                                allSelected = true,
+                                splitSelected = false,
+                                notSplitSelected = false
+                            )
 
 
+                        }
                     }
                 }
+                if (notSplitSelected) {
+                    LazyColumn(
+                        contentPadding = PaddingValues(top = 12.dp, end = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(filteredProducts) { product ->
+                            ProductButton(
+                                product = product,
+                                productViewModel,
+                                allSelected = false,
+                                splitSelected = false,
+                                notSplitSelected = true
+                            )
+
+
+                        }
+                    }
+                }
+                if (splitSelected) {
+                    LazyColumn(
+                        contentPadding = PaddingValues(top = 12.dp, end = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(filteredProducts) { product ->
+                            ProductButton(
+                                product = product,
+                                productViewModel,
+                                allSelected = false,
+                                splitSelected = true,
+                                notSplitSelected = false
+                            )
+
+
+                        }
+                    }
+                }
+
             }
 
 
+        }
+    }
+    DisposableEffect(Unit) {
+        onDispose {
+            productViewModel.resetProductsCheckedStatus()
         }
     }
 }
@@ -215,7 +326,10 @@ fun ProductsWithCategoryScreen(
 @Composable
 fun ProductButton(
     product: Product,
-    productViewModel: ProductViewModel
+    productViewModel: ProductViewModel,
+    allSelected: Boolean,
+    splitSelected: Boolean,
+    notSplitSelected: Boolean
 ) {
     Card(
         modifier = Modifier
@@ -257,11 +371,17 @@ fun ProductButton(
                     .padding(8.dp),
 
                 )
-
-            Checkbox(checked = product.isChecked,
-                onCheckedChange = { isChecked ->
-                    productViewModel.setProductChecked(product, isChecked)
-                })
+            if (notSplitSelected) {
+                Checkbox(checked = product.isChecked,
+                    onCheckedChange = { isChecked ->
+                        productViewModel.setProductChecked(product, isChecked)
+                    })
+            }
+            if (allSelected || splitSelected) {
+                IconButton(onClick = { /*TODO*/ }) {
+                    Icon(imageVector = Icons.Rounded.MoreVert, contentDescription = "")
+                }
+            }
 
         }
 
@@ -273,23 +393,30 @@ fun ProductButton(
 
 @Composable
 fun SplitAlertDialog(
+    productId: Int,
     onDismiss: () -> Unit,
     friendViewModel: FriendViewModel,
     productViewModel: ProductViewModel
 ) {
+
+    val selectedFriendIds = friendViewModel.checkedFriendsIds.value
     val state = friendViewModel.state.collectAsState().value
     var showAddDialog by remember { mutableStateOf(false) }
     val sumOfCheckedProducts by productViewModel.sumOfCheckedProducts.collectAsState(initial = null)
     val checkedFriendsCount by friendViewModel.checkedFriendsCount.collectAsState(initial = 0)
-
-
-
+    val amountPerFriend =
+        if (checkedFriendsCount > 0 && sumOfCheckedProducts != null) {
+            (sumOfCheckedProducts?.div(checkedFriendsCount))?.toBigDecimal()
+                ?.setScale(2, RoundingMode.HALF_EVEN)?.toDouble()
+        } else {
+            null
+        }
 
     Dialog(onDismissRequest = { onDismiss() }) {
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(8.dp),
             shape = MaterialTheme.shapes.medium,
             color = MaterialTheme.colorScheme.surface
         ) {
@@ -307,7 +434,7 @@ fun SplitAlertDialog(
                 Spacer(modifier = Modifier.height(10.dp))
                 LazyColumn {
                     items(state.friends) { friend ->
-                        FriendCheckbox(friend = friend, friendViewModel)
+                        FriendCheckbox(friend = friend, friendViewModel,amountPerFriend)
                     }
                 }
                 if (showAddDialog) {
@@ -343,18 +470,25 @@ fun SplitAlertDialog(
                     Spacer(modifier = Modifier.width(8.dp))
                     TextButton(
                         onClick = {
-                            // Sprawdzamy, czy liczba zaznaczonych znajomych nie jest równa zero,
-                            // aby uniknąć dzielenia przez zero.
-                            if (checkedFriendsCount > 0) {
-                                // Obliczamy, ile każdy znajomy powinien zapłacić
-                                val amountPerFriend = (sumOfCheckedProducts?.div(checkedFriendsCount))?.toBigDecimal()
-                                    ?.setScale(2, RoundingMode.HALF_EVEN)?.toDouble()
-                                // Tutaj możesz użyć obliczonej wartości, np. wyświetlić w dialogu lub Toast
-                                Log.d("YourScreen", "Każdy znajomy powinien zapłacić: $amountPerFriend")
+
+                            if (checkedFriendsCount > 0 && sumOfCheckedProducts != null) {
+                                if (amountPerFriend != null) {
+                                    friendViewModel.decreaseBalanceForCheckedFriends(amountPerFriend)
+                                }
+                                productViewModel.updateProductsAsSplit()
+
+                                Log.d(
+                                    "YourScreen",
+                                    "Każdy znajomy powinien zapłacić: $amountPerFriend"
+                                )
+
+
+                                onDismiss()
+
                             } else {
-                                // Wyświetlamy komunikat, jeśli nie ma zaznaczonych znajomych
                                 Log.d("YourScreen", "Nie wybrano żadnych znajomych")
                             }
+
                         },
                         modifier = Modifier.weight(1f)
                     ) {
@@ -366,17 +500,26 @@ fun SplitAlertDialog(
     }
 }
 
+
+
 @Composable
-fun FriendCheckbox(friend: Friend, friendViewModel: FriendViewModel) {
+fun FriendCheckbox(friend: Friend, friendViewModel: FriendViewModel,amountPerFriend: Double?) {
 
     Row(
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth()
     ) {
         Checkbox(checked = friend.isChecked,
             onCheckedChange = { isChecked ->
                 friendViewModel.setFriendChecked(friend, isChecked)
+
             })
         Text(text = friend.name)
+        Spacer(Modifier.weight(1f))
+        if (amountPerFriend != null) {
+            // Wyświetlanie kwoty obok nazwy znajomego
+            Text(text = " - ${amountPerFriend} zł")
+        }
     }
 }
 
@@ -459,3 +602,4 @@ fun AddFriendDialog(
         }
     }
 }
+

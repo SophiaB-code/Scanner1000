@@ -24,7 +24,6 @@ import com.example.scanner1000.ui.screens.ChoosePhotoScreen
 import com.example.scanner1000.ui.screens.MainScreen
 import com.example.scanner1000.ui.screens.ProductsWithCategoryScreen
 import com.example.scanner1000.ui.screens.ReceiptsScreen
-import com.example.scanner1000.ui.screens.TextRecognitionScreen
 import com.example.scanner1000.ui.theme.AppTheme
 
 class MainActivity : ComponentActivity() {
@@ -77,6 +76,7 @@ class MainActivity : ComponentActivity() {
         }
     )
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -91,6 +91,7 @@ class MainActivity : ComponentActivity() {
                     NavHost(navController = navController, startDestination = "MainScreen") {
                         composable("mainScreen") {
                             MainScreen(
+                                viewModelFriend,
                                 navController
                             )
                         }
@@ -101,18 +102,7 @@ class MainActivity : ComponentActivity() {
                                 navController
                             )
                         }
-                        composable(
-                            "textRecognitionScreen/{categoryId}",
-                            arguments = listOf(navArgument("categoryId") {
-                                type = NavType.IntType
-                            })
-                        ) { backStackEntry ->
-                            TextRecognitionScreen(
-                                navController = navController,
-                                textRecognizingViewModel = viewModelText,
-                                selectedCategoryId = backStackEntry.arguments?.getInt("categoryId")
-                            )
-                        }
+
                         composable("chooseCategoryScreen") {
                             ChooseCategoryScreen(viewModelCat, navController)
                         }
@@ -136,9 +126,11 @@ class MainActivity : ComponentActivity() {
                         ) { backStackEntry ->
                             backStackEntry.arguments?.let {
                                 ProductsWithCategoryScreen(
+                                    productId = it.getInt("product.id"),
                                     categoryId = it.getInt("category.id"),
                                     viewModelFriend,
                                     viewModelPro
+
 
                                 )
                             }

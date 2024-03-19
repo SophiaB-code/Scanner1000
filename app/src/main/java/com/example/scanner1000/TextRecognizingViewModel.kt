@@ -86,7 +86,7 @@ class TextRecognizingViewModel (application: Application) : ViewModel() {
                         price = price,
                         dateAdded = System.currentTimeMillis(),
                         categoryFk = 0,
-                        isSplit = 0
+                        isSplit = false
 
 
                     )

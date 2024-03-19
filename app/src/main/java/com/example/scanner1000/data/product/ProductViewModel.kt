@@ -56,8 +56,7 @@ class ProductViewModel(
                     name = state.value.name.value,
                     price = state.value.price.value,
                     dateAdded = System.currentTimeMillis(),
-                    categoryFk = event.categoryFk,
-                    isSplit = state.value.isSplit.value
+                    categoryFk = event.categoryFk
                 )
 
                 viewModelScope.launch {
@@ -93,6 +92,18 @@ class ProductViewModel(
     }
 
 
+    fun updateProductsAsSplit() = viewModelScope.launch {
+        dao.updateProductsAsSplit()
     }
+    fun resetProductsCheckedStatus() {
+        viewModelScope.launch {
+            dao.resetProductsCheckedStatus()
+        }
+    }
+
+
+
+
+}
 
 

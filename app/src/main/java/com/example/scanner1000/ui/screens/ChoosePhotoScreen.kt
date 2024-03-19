@@ -50,6 +50,19 @@ fun ChoosePhotoScreen(
 )
 {
     val context = LocalContext.current as Activity
+    val tempProducts = textRecognizingViewModel.tempRecognizedProducts.value
+
+
+        if (tempProducts.isNotEmpty()) {
+            if (selectedCategoryId != null) {
+                textRecognizingViewModel.saveRecognizedProducts(
+                    selectedCategoryId
+                )
+            }
+        }
+        else {
+            // Obsługa przypadku, gdy kategoria nie została wybrana (opcjonalnie)
+        }
 
 
     val imageCropLauncher =
@@ -71,7 +84,7 @@ fun ChoosePhotoScreen(
                         ImageDecoder.decodeBitmap(source)
                     }
                     textRecognizingViewModel.updateBitmap(newBitmap)
-                    navController.navigate("textRecognitionScreen/${selectedCategoryId}")
+                    navController.navigate("productsWithCategoryScreen/${selectedCategoryId}")
                 }
 
             }
@@ -85,7 +98,6 @@ fun ChoosePhotoScreen(
     Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            //verticalArrangement = Arrangement.Center
     ) {
         Text(
                 text = "Dodaj zdjęcie",
@@ -110,6 +122,7 @@ fun ChoosePhotoScreen(
                                     CropImageOptions(imageSourceIncludeCamera = false)
                             )
                             imageCropLauncher.launch(cropOptions)
+
                         },
                         contentDescription = "Wybierz zdjęcie z galerii",
                         colors = CardDefaults.cardColors(

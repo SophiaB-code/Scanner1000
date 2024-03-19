@@ -60,6 +60,15 @@ interface ProductDao {
     @Query("SELECT SUM(price) FROM product WHERE isChecked = 1")
     fun getSumOfCheckedProducts(): Flow<Double?>
 
+    @Query("UPDATE product SET isSplit = 1 WHERE isChecked = 1")
+    suspend fun updateProductsAsSplit()
+
+    @Query("UPDATE product SET isChecked = 0")
+    suspend fun resetProductsCheckedStatus()
+
+
+
+
 
 }
 @Dao
@@ -70,6 +79,17 @@ interface FriendDao {
 
     @Update
     suspend fun updateFriend(friend: Friend)
+    @Query("UPDATE friend SET balance = :newBalance WHERE id = :friendId")
+    suspend fun updateFriendsBalance(friendId: Int, newBalance: Double)
+
+    @Query("UPDATE friend SET balance = balance + :amountToAdd")
+    suspend fun increaseBalance(amountToAdd: Double)
+
+    @Query("UPDATE friend SET balance = balance - :amountToSubtract WHERE isChecked = 1")
+    suspend fun decreaseBalanceForCheckedFriends(amountToSubtract: Double)
+
+    @Query("UPDATE friend SET balance = balance - :amountToSubtract")
+    suspend fun decreaseBalance(amountToSubtract: Double)
 
     @Delete
     suspend fun deleteFriend(friend: Friend)
@@ -86,4 +106,14 @@ interface FriendDao {
     @Query("SELECT COUNT(*) FROM friend WHERE isChecked = 1")
     fun getCheckedFriendsCount(): Flow<Int>
 
+    @Query("SELECT * FROM friend WHERE isChecked = 1")
+    fun getCheckedFriends(): Flow<List<Friend>>
+
+    @Query("""  SELECT id FROM friend 
+    WHERE isChecked = 1
+    """)
+    fun getCheckedFriendsIds(): Flow<List<Int>>
+
+
 }
+

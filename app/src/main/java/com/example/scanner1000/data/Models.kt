@@ -20,7 +20,7 @@ data class Product (
     val price: Double,
     val dateAdded: Long,
     val categoryFk: Int,
-    val isSplit: Int,
+    val isSplit: Boolean = false,
     val isChecked: Boolean = false,
 
     @PrimaryKey(autoGenerate = true)

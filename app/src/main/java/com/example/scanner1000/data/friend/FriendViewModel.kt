@@ -9,12 +9,14 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.math.RoundingMode
 
 class FriendViewModel(private val dao: FriendDao) : ViewModel() {
 
@@ -85,9 +87,48 @@ class FriendViewModel(private val dao: FriendDao) : ViewModel() {
     }
 
 
-    fun updateFriendBalance(friendId: Int, newBalance: Double) = viewModelScope.launch {
-        val friend = dao.getFriendById(friendId).firstOrNull() ?: return@launch
-        val updatedFriend = friend.copy(balance = newBalance)
+    private val _checkedFriends = MutableStateFlow<List<Friend>>(emptyList())
+    val checkedFriends: StateFlow<List<Friend>> = _checkedFriends
+    fun getCheckedFriends() {
+        viewModelScope.launch {
+            dao.getCheckedFriends().collect { friends ->
+                _checkedFriends.value = friends
+            }
+        }
+    }
+    private val _checkedFriendsIds = MutableStateFlow<List<Int>>(emptyList())
+    val checkedFriendsIds: StateFlow<List<Int>> = _checkedFriendsIds
+    fun getCheckedFriendsIds() {
+        viewModelScope.launch {
+            dao.getCheckedFriendsIds().collect { friends ->
+                _checkedFriendsIds.value = friends
+            }
+        }
+    }
+
+    fun updateFriendBalance(friend: Friend, amount: Double) = viewModelScope.launch {
+        val updatedFriend = friend.copy(balance = friend.balance + amount)
         dao.updateFriend(updatedFriend)
     }
+
+
+    fun decreaseBalanceForCheckedFriends(amountToSubtract: Double) = viewModelScope.launch {
+        dao.decreaseBalanceForCheckedFriends(amountToSubtract)
+    }
+
+    fun increaseBalanceForSpecificFriend(friendId: Int, amountToAdd: Double) = viewModelScope.launch {
+        val friend = dao.getFriendById(friendId).first()
+        val newBalance = (friend.balance + amountToAdd).toBigDecimal()
+            .setScale(2, RoundingMode.HALF_EVEN).toDouble()
+        dao.updateFriend(friend.copy(balance = newBalance))
+    }
+
+    fun decreaseBalanceForSpecificFriend(friendId: Int, amountToSubtract: Double) = viewModelScope.launch {
+        val friend = dao.getFriendById(friendId).first()
+        val newBalance = (friend.balance - amountToSubtract).toBigDecimal()
+            .setScale(2, RoundingMode.HALF_EVEN).toDouble()
+        dao.updateFriend(friend.copy(balance = newBalance))
+    }
+
+
 }
