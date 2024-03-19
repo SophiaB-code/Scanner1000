@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.scanner1000.data.Product
 import com.example.scanner1000.data.ProductDao
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -21,6 +22,8 @@ class ProductViewModel(
     private val dao: ProductDao
 ) : ViewModel() {
     private val isSortedByName = MutableStateFlow(true)
+    val sumOfCheckedProducts: Flow<Double?> = dao.getSumOfCheckedProducts()
+
 
     @OptIn(ExperimentalCoroutinesApi::class)
     var products =
@@ -88,6 +91,7 @@ class ProductViewModel(
         dao.updateProductIsChecked(product.id, isChecked)
         // Możesz też aktualizować stan w pamięci, jeśli trzymasz tam listę produktów
     }
+
 
     }
 

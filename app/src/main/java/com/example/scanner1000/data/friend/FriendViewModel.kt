@@ -6,9 +6,11 @@ import androidx.lifecycle.viewModelScope
 import com.example.scanner1000.data.Friend
 import com.example.scanner1000.data.FriendDao
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -17,6 +19,7 @@ import kotlinx.coroutines.launch
 class FriendViewModel(private val dao: FriendDao) : ViewModel() {
 
     private val getAllFriends = MutableStateFlow(true)
+    val checkedFriendsCount: Flow<Int> = dao.getCheckedFriendsCount()
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private var friends =
@@ -79,5 +82,12 @@ class FriendViewModel(private val dao: FriendDao) : ViewModel() {
     fun setFriendChecked(friend: Friend, isChecked: Boolean) = viewModelScope.launch {
         dao.updateFriendIsChecked(friend.id, isChecked)
         // Możesz też aktualizować stan w pamięci, jeśli trzymasz tam listę produktów
+    }
+
+
+    fun updateFriendBalance(friendId: Int, newBalance: Double) = viewModelScope.launch {
+        val friend = dao.getFriendById(friendId).firstOrNull() ?: return@launch
+        val updatedFriend = friend.copy(balance = newBalance)
+        dao.updateFriend(updatedFriend)
     }
 }

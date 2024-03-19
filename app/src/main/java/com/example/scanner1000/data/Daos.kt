@@ -57,6 +57,10 @@ interface ProductDao {
     ORDER BY name ASC """)
     fun getProductsWithCategory(categoryId:Int): Flow<List<Product>>
 
+    @Query("SELECT SUM(price) FROM product WHERE isChecked = 1")
+    fun getSumOfCheckedProducts(): Flow<Double?>
+
+
 }
 @Dao
 interface FriendDao {
@@ -73,8 +77,13 @@ interface FriendDao {
     @Query("SELECT * FROM friend ORDER BY name ASC")
     fun getAllFriends(): Flow<List<Friend>>
 
+    @Query("SELECT * FROM friend WHERE id = :friendId")
+    fun getFriendById(friendId: Int): Flow<Friend>
+
     @Query("UPDATE friend SET isChecked = :isChecked WHERE id = :friendId")
     suspend fun updateFriendIsChecked(friendId: Int, isChecked: Boolean)
 
+    @Query("SELECT COUNT(*) FROM friend WHERE isChecked = 1")
+    fun getCheckedFriendsCount(): Flow<Int>
 
 }

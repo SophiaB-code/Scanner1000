@@ -1,5 +1,6 @@
 package com.example.scanner1000.ui.screens
 
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -53,6 +54,7 @@ import com.example.scanner1000.data.Product
 import com.example.scanner1000.data.friend.FriendEvent
 import com.example.scanner1000.data.friend.FriendViewModel
 import com.example.scanner1000.data.product.ProductViewModel
+import java.math.RoundingMode
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -81,6 +83,7 @@ fun ProductsWithCategoryScreen(
                     SplitAlertDialog(
                         onDismiss = { showSplitDialog = false },
                         friendViewModel = friendViewModel,
+                        productViewModel
                     )
                 }
                 Button(
@@ -271,10 +274,16 @@ fun ProductButton(
 @Composable
 fun SplitAlertDialog(
     onDismiss: () -> Unit,
-    friendViewModel: FriendViewModel
+    friendViewModel: FriendViewModel,
+    productViewModel: ProductViewModel
 ) {
     val state = friendViewModel.state.collectAsState().value
     var showAddDialog by remember { mutableStateOf(false) }
+    val sumOfCheckedProducts by productViewModel.sumOfCheckedProducts.collectAsState(initial = null)
+    val checkedFriendsCount by friendViewModel.checkedFriendsCount.collectAsState(initial = 0)
+
+
+
 
     Dialog(onDismissRequest = { onDismiss() }) {
         Surface(
@@ -334,7 +343,18 @@ fun SplitAlertDialog(
                     Spacer(modifier = Modifier.width(8.dp))
                     TextButton(
                         onClick = {
-
+                            // Sprawdzamy, czy liczba zaznaczonych znajomych nie jest równa zero,
+                            // aby uniknąć dzielenia przez zero.
+                            if (checkedFriendsCount > 0) {
+                                // Obliczamy, ile każdy znajomy powinien zapłacić
+                                val amountPerFriend = (sumOfCheckedProducts?.div(checkedFriendsCount))?.toBigDecimal()
+                                    ?.setScale(2, RoundingMode.HALF_EVEN)?.toDouble()
+                                // Tutaj możesz użyć obliczonej wartości, np. wyświetlić w dialogu lub Toast
+                                Log.d("YourScreen", "Każdy znajomy powinien zapłacić: $amountPerFriend")
+                            } else {
+                                // Wyświetlamy komunikat, jeśli nie ma zaznaczonych znajomych
+                                Log.d("YourScreen", "Nie wybrano żadnych znajomych")
+                            }
                         },
                         modifier = Modifier.weight(1f)
                     ) {
