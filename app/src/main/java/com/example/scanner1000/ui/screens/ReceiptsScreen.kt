@@ -81,7 +81,7 @@ fun ReceiptsScreen(
     ) {
         Row (modifier = Modifier.fillMaxWidth().padding(15.dp)){
             Text(
-                text = "Kategorie",
+                text = "Paragony",
                 fontSize = MaterialTheme.typography.headlineMedium.fontSize,
                 style = TextStyle(
                     fontFamily = Rubik,

@@ -11,9 +11,11 @@ sealed interface ProductEvent {
         val name: String,
         val price: Double,
         val categoryFk: Int,
-        val isSplit: Int,
+        val isSplit: Boolean,
         val isChecked: Boolean
     ): ProductEvent
+
+    data class EditProduct(val product: Product): ProductEvent
 
     data class UpdateProduct(
         val isChecked: Boolean

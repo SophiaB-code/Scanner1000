@@ -9,7 +9,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -24,7 +23,7 @@ class FriendViewModel(private val dao: FriendDao) : ViewModel() {
     val checkedFriendsCount: Flow<Int> = dao.getCheckedFriendsCount()
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private var friends =
+    var friends =
         getAllFriends.flatMapLatest { dao.getAllFriends() }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
 
@@ -83,38 +82,12 @@ class FriendViewModel(private val dao: FriendDao) : ViewModel() {
 
     fun setFriendChecked(friend: Friend, isChecked: Boolean) = viewModelScope.launch {
         dao.updateFriendIsChecked(friend.id, isChecked)
-        // Możesz też aktualizować stan w pamięci, jeśli trzymasz tam listę produktów
+    }
+    fun getAllFriends() = viewModelScope.launch {
+        dao.getAllFriends()
     }
 
-
-    private val _checkedFriends = MutableStateFlow<List<Friend>>(emptyList())
-    val checkedFriends: StateFlow<List<Friend>> = _checkedFriends
-    fun getCheckedFriends() {
-        viewModelScope.launch {
-            dao.getCheckedFriends().collect { friends ->
-                _checkedFriends.value = friends
-            }
-        }
-    }
-    private val _checkedFriendsIds = MutableStateFlow<List<Int>>(emptyList())
-    val checkedFriendsIds: StateFlow<List<Int>> = _checkedFriendsIds
-
-    init {
-        getCheckedFriendsIds()
-    }
-    fun getCheckedFriendsIds() {
-        viewModelScope.launch {
-            dao.getCheckedFriendsIds().collect { ids ->
-                _checkedFriendsIds.value = ids
-            }
-        }
-    }
-
-    fun updateFriendBalance(friend: Friend, amount: Double) = viewModelScope.launch {
-        val updatedFriend = friend.copy(balance = friend.balance + amount)
-        dao.updateFriend(updatedFriend)
-    }
-
+    val checkedFriendsIds: Flow<List<Int>> = dao.getCheckedFriendsIds()
 
     fun decreaseBalanceForCheckedFriends(amountToSubtract: Double) = viewModelScope.launch {
         dao.decreaseBalanceForCheckedFriends(amountToSubtract)
@@ -133,6 +106,16 @@ class FriendViewModel(private val dao: FriendDao) : ViewModel() {
             .setScale(2, RoundingMode.HALF_EVEN).toDouble()
         dao.updateFriend(friend.copy(balance = newBalance))
     }
+    init {
+        initializeDefaultFriend()
+    }
 
-
+    fun initializeDefaultFriend() = viewModelScope.launch {
+        val defaultFriendName = "Ja"
+        val existingFriend = dao.findFriendByName(defaultFriendName)
+        if (existingFriend == null) {
+            val newFriend = Friend(name = defaultFriendName, balance = 0.0, isChecked = false)
+            dao.insertFriend(newFriend)
+        }
+    }
 }

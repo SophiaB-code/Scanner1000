@@ -214,7 +214,8 @@ fun ChooseCategoryScreen(
                         padding = 3.dp
                     ) {
                         LazyColumn(state = listState) {
-                            items(state.categories) { category ->
+                            val filteredCategories = state.categories.filterNot { it.id == 1 }
+                            items(filteredCategories) { category ->
                                 CategoryButton(
                                     category = category,
                                     isSelected = selectedCategoryId == category.id,
@@ -286,7 +287,7 @@ fun AddCategoryDialog(
                             "Nazwa",
                             style = TextStyle(
                                 fontFamily = Rubik,
-                                fontStyle = FontStyle.Italic,
+                                fontStyle = FontStyle.Normal,
                                 fontWeight = FontWeight.Light
                             ),
                         )

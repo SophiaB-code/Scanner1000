@@ -59,7 +59,10 @@ class ProductViewModel(
                     name = state.value.name.value,
                     price = state.value.price.value,
                     dateAdded = System.currentTimeMillis(),
-                    categoryFk = event.categoryFk
+                    categoryFk = event.categoryFk,
+                    isSplit = state.value.isSplit.value,
+                    isChecked = state.value.isChecked.value,
+
                 )
 
                 viewModelScope.launch {
@@ -73,6 +76,14 @@ class ProductViewModel(
                     )
                 }
             }
+            is ProductEvent.EditProduct -> {
+                viewModelScope.launch {
+                    dao.updateProduct(event.product) // Załóżmy, że masz taką metodę
+                }
+
+            }
+
+
             ProductEvent.SortProducts -> {
                 isSortedByName.value = !isSortedByName.value
             }
@@ -91,7 +102,10 @@ class ProductViewModel(
 
     fun setProductChecked(product: Product, isChecked: Boolean) = viewModelScope.launch {
         dao.updateProductIsChecked(product.id, isChecked)
-        // Możesz też aktualizować stan w pamięci, jeśli trzymasz tam listę produktów
+    }
+
+    fun setNotSplitProductsChecked(isChecked: Boolean) = viewModelScope.launch {
+        dao.setNotSplitProductsChecked(isChecked)
     }
 
     fun updateProductsAsSplit() = viewModelScope.launch {
@@ -102,13 +116,21 @@ class ProductViewModel(
             dao.resetProductsCheckedStatus()
         }
     }
-    fun addSharedProductInfo(productId: Int, sharedWith: List<Int>, amountPerFriend: Double) = viewModelScope.launch {
-        val newSharedProduct = SharedProductInfo(productId = productId, amountPerFriend = amountPerFriend, sharedWith = sharedWith)
+    fun addSharedProductInfo(productId: Int, friendId: Int, amountPerFriend: Double) = viewModelScope.launch {
+        val newSharedProduct = SharedProductInfo(productId = productId, amountPerFriend = amountPerFriend, friendId = friendId)
         sharedProductDao.insertSharedProduct(newSharedProduct)
     }
 
-    // Funkcja zwracająca Flow z listą ID zaznaczonych produktów
+
     val checkedProductIds: Flow<List<Int>> = dao.getCheckedProductsIds()
+
+    fun addProduct(product: Product) = viewModelScope.launch {
+        dao.upsertProduct(product)
+    }
+
+    fun deleteProduct(product: Product) = viewModelScope.launch {
+        dao.deleteProduct(product)
+    }
 
 }
 

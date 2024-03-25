@@ -40,7 +40,7 @@ data class Friend(
 @Entity(tableName = "sharedProductInfo")
 data class SharedProductInfo(
     val productId: Int,
-    val sharedWith: List<Int>,
+    val friendId: Int,
     val amountPerFriend: Double,
 
     @PrimaryKey(autoGenerate = true)

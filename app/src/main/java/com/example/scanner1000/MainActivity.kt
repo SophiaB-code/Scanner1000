@@ -126,10 +126,10 @@ class MainActivity : ComponentActivity() {
                         ) { backStackEntry ->
                             backStackEntry.arguments?.let {
                                 ProductsWithCategoryScreen(
-                                    productId = it.getInt("product.id"),
                                     categoryId = it.getInt("category.id"),
                                     viewModelFriend,
-                                    viewModelPro
+                                    viewModelPro,
+                                    viewModelCat
 
 
                                 )

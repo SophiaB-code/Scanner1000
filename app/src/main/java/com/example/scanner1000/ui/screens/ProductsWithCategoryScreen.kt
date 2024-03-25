@@ -2,6 +2,7 @@ package com.example.scanner1000.ui.screens
 
 import android.util.Log
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -16,9 +17,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.LibraryAddCheck
 import androidx.compose.material.icons.outlined.LibraryAddCheck
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.MoreVert
@@ -48,16 +51,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.example.scanner1000.data.Friend
 import com.example.scanner1000.data.Product
+import com.example.scanner1000.data.category.CategoryViewModel
 import com.example.scanner1000.data.friend.FriendEvent
 import com.example.scanner1000.data.friend.FriendViewModel
+import com.example.scanner1000.data.product.ProductEvent
 import com.example.scanner1000.data.product.ProductViewModel
 import com.example.scanner1000.ui.theme.Rubik
 import java.math.RoundingMode
@@ -65,10 +72,10 @@ import java.math.RoundingMode
 
 @Composable
 fun ProductsWithCategoryScreen(
-    productId: Int,
     categoryId: Int,
     friendViewModel: FriendViewModel,
-    productViewModel: ProductViewModel
+    productViewModel: ProductViewModel,
+    categoryViewModel: CategoryViewModel
 ) {
     // Przykład załadowania produktów dla danej kategorii
     LaunchedEffect(categoryId) {
@@ -83,6 +90,12 @@ fun ProductsWithCategoryScreen(
     var splitSelected by remember { mutableStateOf(false) }
     var notSplitSelected by remember { mutableStateOf(true) }
     var showSplitDialog by remember { mutableStateOf(false) }
+    var isIconFilled by remember { mutableStateOf(false) }
+
+    var showAddProductDialog by remember { mutableStateOf(false) }
+
+    val categoryName = categoryViewModel.getCategoryTitleById(categoryId).collectAsState(initial = "")
+
 
     filteredProducts = when {
         splitSelected -> products.filter { it.isSplit }
@@ -97,7 +110,6 @@ fun ProductsWithCategoryScreen(
 
                     if (showSplitDialog) {
                         SplitAlertDialog(
-                            productId = productId,
                             onDismiss = { showSplitDialog = false },
                             friendViewModel = friendViewModel,
                             productViewModel
@@ -125,33 +137,73 @@ fun ProductsWithCategoryScreen(
         ) {
             Row(Modifier.fillMaxWidth()) {
                 Text(
-                    text = "Produkty",
-                    fontSize = MaterialTheme.typography.titleLarge.fontSize,
-                    fontFamily = Rubik,
-                    fontStyle = FontStyle.Normal,
-                    fontWeight = FontWeight.Light,
+                    text = categoryName.value,
                     modifier = Modifier
                         .padding(bottom = 10.dp, top = 10.dp, start = 20.dp)
-                        .weight(3f)
+                        .weight(3f),
+                    fontSize = MaterialTheme.typography.headlineMedium.fontSize,
+                    style = TextStyle(
+                        fontFamily = Rubik,
+                        fontStyle = FontStyle.Normal,
+                        fontWeight = FontWeight.Medium
+                    ),
                 )
                 if (notSplitSelected) {
                     IconButton(
-                        onClick = { /*TODO*/ },
+                        onClick = { showAddProductDialog = true },
                         modifier = Modifier
                             .weight(1f)
                             .padding(start = 5.dp)
                     ) {
                         Icon(
-                            imageVector = Icons.Outlined.LibraryAddCheck,
+                            imageVector = Icons.Rounded.Add,
+                            contentDescription = "",
+                            modifier = Modifier.size(30.dp)
+                        )
+                    }
+
+                    IconButton(
+                        onClick = {
+                            isIconFilled = !isIconFilled
+                            if (isIconFilled) {
+                                productViewModel.setNotSplitProductsChecked(true) // Zakładając, że ta metoda zaznacza produkty
+                            } else {
+                                productViewModel.setNotSplitProductsChecked(false) // Zakładając, że ta metoda odznacza produkty
+                            }
+                        },
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(start = 5.dp)
+                    ) {
+                        Icon(
+                            imageVector = if (isIconFilled) Icons.Filled.LibraryAddCheck else Icons.Outlined.LibraryAddCheck,
                             contentDescription = "",
                             modifier = Modifier.size(30.dp)
                         )
                     }
                 }
+                if (showAddProductDialog) {
+                    AddProductDialog(
+                        onDismiss = { showAddProductDialog = false },
+                        productViewModel = productViewModel,
+                        onSave = { name, price ->
+                            productViewModel.addProduct(
+                                Product(
+                                    name = name,
+                                    price = price,
+                                    categoryFk = categoryId,
+                                    isSplit = false,
+                                    isChecked = false,
+                                    dateAdded = System.currentTimeMillis()
+                                )
+                            )
+                        }
+                    )
+                }
                 if (allSelected) {
 
                     IconButton(
-                        onClick = { /*TODO*/ },
+                        onClick = { showAddProductDialog = true },
                         modifier = Modifier
                             .weight(1f)
                             .padding(start = 5.dp)
@@ -333,11 +385,31 @@ fun ProductButton(
     splitSelected: Boolean,
     notSplitSelected: Boolean
 ) {
+
+    var showProductEditDialog by remember { mutableStateOf(false) }
+
+    if(showProductEditDialog){
+        EditProductDialog(
+            onDismiss = { showProductEditDialog = false },
+            productViewModel = productViewModel,
+            onEditProduct = {updatedProduct ->
+                productViewModel.onEvent(ProductEvent.EditProduct(updatedProduct))},
+            product = product
+        )
+    }
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .height(40.dp)
-            .clickable(onClick = { }),
+            .clickable(onClick = {showProductEditDialog = true },)
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onLongPress = {
+                        // perform some action here..
+                        showProductEditDialog = true
+                    }
+                )
+            },
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant
 
@@ -365,7 +437,7 @@ fun ProductButton(
 
             Text(
 
-                text = product.price.toString(),
+                text = product.price.toString() + " zł",
                 fontSize = MaterialTheme.typography.titleMedium.fontSize,
                 color = Color.Black,
                 modifier = Modifier
@@ -395,15 +467,10 @@ fun ProductButton(
 
 @Composable
 fun SplitAlertDialog(
-    productId: Int,
     onDismiss: () -> Unit,
     friendViewModel: FriendViewModel,
     productViewModel: ProductViewModel
 ) {
-
-
-   // val selectedFriendIds = remember { mutableStateListOf<Int>() }
-    val selectedFriendIds = friendViewModel.checkedFriendsIds.collectAsState(initial = emptyList()).value
 
     val state = friendViewModel.state.collectAsState().value
     var showAddDialog by remember { mutableStateOf(false) }
@@ -417,6 +484,8 @@ fun SplitAlertDialog(
             null
         }
     val checkedProductIds by productViewModel.checkedProductIds.collectAsState(initial = emptyList())
+    val selectedFriendIds =
+        friendViewModel.checkedFriendsIds.collectAsState(initial = emptyList()).value
 
     Dialog(onDismissRequest = { onDismiss() }) {
         Surface(
@@ -485,12 +554,14 @@ fun SplitAlertDialog(
                                 productViewModel.resetProductsCheckedStatus()
 
                                 checkedProductIds.forEach { productId ->
-                                    if (amountPerFriend != null) {
-                                        productViewModel.addSharedProductInfo(
-                                            productId,
-                                            selectedFriendIds,
-                                            amountPerFriend
-                                        )
+                                    selectedFriendIds.forEach { friendId ->
+                                        if (amountPerFriend != null) {
+                                            productViewModel.addSharedProductInfo(
+                                                productId,
+                                                friendId,
+                                                amountPerFriend
+                                            )
+                                        }
                                     }
                                 }
 
@@ -610,6 +681,261 @@ fun AddFriendDialog(
                                 errorMessage = "Pole imię nie może być puste"
                             } else {
                                 onSave(state.name.value)
+                            }
+                            onDismiss()
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Dodaj")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun AddProductDialog(
+    onDismiss: () -> Unit,
+    productViewModel: ProductViewModel,
+    onSave: (String, Double) -> Unit
+) {
+    Dialog(onDismissRequest = { onDismiss() }) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            shape = MaterialTheme.shapes.medium,
+            color = MaterialTheme.colorScheme.surface
+        ) {
+            Column(
+                modifier = Modifier.padding(12.dp)
+            )
+            {
+                var productName by remember { mutableStateOf("") }
+                // Stan dla ceny produktu
+                var productPrice by remember { mutableStateOf("") }
+
+                val state = productViewModel.state.collectAsState().value
+                var errorMessage by remember { mutableStateOf<String?>(null) }
+
+                Text(
+                    text = "Dodaj produkt",
+                    fontSize = MaterialTheme.typography.bodyLarge.fontSize,
+                    style = TextStyle(
+                        fontFamily = Rubik,
+                        fontStyle = FontStyle.Normal,
+                        fontWeight = FontWeight.Medium
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(5.dp)
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                OutlinedTextField(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 16.dp, end = 16.dp, bottom = 4.dp, top = 4.dp),
+                    value = productName,
+                    onValueChange = {
+                        productName = it
+                    },
+                    textStyle = TextStyle(
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 17.sp
+                    ),
+                    label = {
+                        Text(
+                            "Nazwa",
+                            style = TextStyle(
+                                fontFamily = Rubik,
+                                fontStyle = FontStyle.Normal,
+                                fontWeight = FontWeight.Light
+                            ),
+                        )
+                    },
+                    singleLine = true,
+                    isError = errorMessage != null
+                )
+                OutlinedTextField(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 16.dp, end = 16.dp, bottom = 4.dp, top = 4.dp),
+                    value = productPrice,
+                    onValueChange = { newValue ->
+                        // Wyrażenie regularne pasujące do liczby z maksymalnie dwoma miejscami po przecinku
+                        val pattern = Regex("^\\d*\\.?\\d{0,2}$")
+
+                        // Sprawdzamy, czy nowa wartość pasuje do wzorca
+                        if (newValue.matches(pattern) || newValue.isEmpty()) {
+                            productPrice = newValue
+                        }
+
+                    },
+                    textStyle = TextStyle(
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 17.sp
+                    ),
+                    label = {
+                        Text(
+                            "Cena",
+                            style = TextStyle(
+                                fontFamily = Rubik,
+                                fontStyle = FontStyle.Normal,
+                                fontWeight = FontWeight.Light
+                            ),
+                        )
+                    },
+                    singleLine = true,
+                    isError = errorMessage != null,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                if (errorMessage != null) {
+                    Text(
+                        text = errorMessage ?: "",
+                        color = Color.Red,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(start = 16.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                Row {
+                    TextButton(
+                        onClick = { onDismiss() },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Anuluj")
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    TextButton(
+                        onClick = {
+                            val productNameCropped =
+                                productName.trim() // Usuwamy białe znaki z początku i końca
+
+
+                            if (productNameCropped.isBlank() || productPrice.isBlank()) {
+                                errorMessage = "Wypełnij wszystkie pola"
+                            } else {
+                                onSave(productName, productPrice.toDouble())
+
+                                onDismiss()
+                            }
+
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Zapisz")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun EditProductDialog(
+    onDismiss: () -> Unit,
+    productViewModel: ProductViewModel,
+    onEditProduct: (Product) -> Unit,
+    product: Product
+) {
+    var editingName by remember { mutableStateOf(product.name) }
+    var editingPrice by remember { mutableStateOf(product.price.toString()) }
+
+    Dialog(onDismissRequest = { onDismiss() }) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            shape = MaterialTheme.shapes.medium,
+            color = MaterialTheme.colorScheme.surface
+        ) {
+            Column(
+                modifier = Modifier.padding(12.dp)
+            )
+            {
+                val state = productViewModel.state.collectAsState().value
+                var errorMessage by remember { mutableStateOf<String?>(null) }
+
+                Text(
+                    text = "Edytuj produkt",
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(5.dp)
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                OutlinedTextField(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(6.dp),
+                    value = editingName,
+                    onValueChange = {
+                        editingName = it
+                    },
+                    textStyle = TextStyle(
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 17.sp
+                    ),
+                    label = { Text("Nazwa") },
+                    isError = errorMessage != null
+                )
+                OutlinedTextField(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 16.dp, end = 16.dp, bottom = 4.dp, top = 4.dp),
+                    value = editingPrice,
+                    onValueChange = { newValue ->
+                        // Wyrażenie regularne pasujące do liczby z maksymalnie dwoma miejscami po przecinku
+                        val pattern = Regex("^\\d*\\.?\\d{0,2}$")
+
+                        // Sprawdzamy, czy nowa wartość pasuje do wzorca
+                        if (newValue.matches(pattern) || newValue.isEmpty()) {
+                            editingPrice = newValue
+                        }
+                    },
+                    textStyle = TextStyle(
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 17.sp
+                    ),
+                    label = {
+                        Text(
+                            "Cena",
+                            style = TextStyle(
+                                fontFamily = Rubik,
+                                fontStyle = FontStyle.Normal,
+                                fontWeight = FontWeight.Light
+                            ),
+                        )
+                    },
+                    singleLine = true,
+                    isError = errorMessage != null,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+                )
+                if (errorMessage != null) {
+                    Text(
+                        text = errorMessage ?: "",
+                        color = Color.Red,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                Row {
+                    TextButton(
+                        onClick = { onDismiss() },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Anuluj")
+                    }
+                    Spacer(modifier = Modifier.width(80.dp))
+                    TextButton(
+                        onClick = {
+                            if (editingName.isBlank() || editingPrice.isBlank()) {
+                                errorMessage = "Uzupełnij pola"
+                            } else {
+                                onEditProduct(product.copy(name = editingName, price = editingPrice.toDouble()))
                             }
                             onDismiss()
                         },

@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.scanner1000.data.Category
 import com.example.scanner1000.data.CategoryDao
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -71,4 +72,25 @@ class CategoryViewModel(
         }
 
     }
+    fun getCategoryTitleById(categoryId: Int): Flow<String> {
+        return dao.getCategoryTitleById(categoryId)
+    }
+
+    init {
+        initializeDefaultCategory()
+    }
+
+    private fun initializeDefaultCategory() = viewModelScope.launch {
+        val defaultCategory = dao.getCategoryById(1)
+        if (defaultCategory == null) {
+            dao.upsertCategory(
+                Category(
+                    id = 1,
+                    title = "Własne produkty",
+                    dateAdded = System.currentTimeMillis()
+                )
+            )
+        }
+    }
+
 }

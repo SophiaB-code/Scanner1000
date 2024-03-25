@@ -234,6 +234,7 @@ fun CardButton(
 fun FriendBalanceCard(
     friend: Friend, colors: CardColors, friendViewModel: FriendViewModel
 ) {
+    val friends by friendViewModel.friends.collectAsState()
     var showBalanceDialog by remember { mutableStateOf(false) }
     if (showBalanceDialog) {
         BalanceEditDialog(
@@ -260,29 +261,40 @@ fun FriendBalanceCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = friend.name,
-                    fontSize = MaterialTheme.typography.titleLarge.fontSize,
-                    color = Color.Black,
-                    style = TextStyle(
-                        fontFamily = Rubik,
-                        fontStyle = FontStyle.Normal,
-                        fontWeight = FontWeight.Medium
+                if (friends.isEmpty()) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text("Brak znajomych", style = TextStyle(
+                            fontFamily = Rubik,
+                            fontStyle = FontStyle.Normal,
+                            fontWeight = FontWeight.Medium
+                        ),
+                            fontSize = MaterialTheme.typography.labelMedium.fontSize,)
+                    }
+                } else {
+                    Text(
+                        text = friend.name,
+                        fontSize = MaterialTheme.typography.titleLarge.fontSize,
+                        color = Color.Black,
+                        style = TextStyle(
+                            fontFamily = Rubik,
+                            fontStyle = FontStyle.Normal,
+                            fontWeight = FontWeight.Medium
+                        )
+
                     )
 
-                )
 
-
-                Text(
-                    text = friend.balance.toString() + " zł",
-                    fontSize = MaterialTheme.typography.titleLarge.fontSize,
-                    color = Color.Black,
-                    style = TextStyle(
-                        fontFamily = Rubik,
-                        fontStyle = FontStyle.Normal,
-                        fontWeight = FontWeight.Normal
+                    Text(
+                        text = friend.balance.toString() + " zł",
+                        fontSize = MaterialTheme.typography.titleLarge.fontSize,
+                        color = Color.Black,
+                        style = TextStyle(
+                            fontFamily = Rubik,
+                            fontStyle = FontStyle.Normal,
+                            fontWeight = FontWeight.Normal
+                        )
                     )
-                )
+                }
             }
         }
     }
