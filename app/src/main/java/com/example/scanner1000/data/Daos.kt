@@ -60,13 +60,15 @@ interface ProductDao {
     @Query("SELECT SUM(price) FROM product WHERE isChecked = 1")
     fun getSumOfCheckedProducts(): Flow<Double?>
 
+    @Query("SELECT id FROM product WHERE isChecked = 1")
+    fun getCheckedProductsIds(): Flow<List<Int>>
+
+
     @Query("UPDATE product SET isSplit = 1 WHERE isChecked = 1")
     suspend fun updateProductsAsSplit()
 
     @Query("UPDATE product SET isChecked = 0")
     suspend fun resetProductsCheckedStatus()
-
-
 
 
 
@@ -113,7 +115,19 @@ interface FriendDao {
     WHERE isChecked = 1
     """)
     fun getCheckedFriendsIds(): Flow<List<Int>>
+}
 
+@Dao
+interface SharedProductDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertSharedProduct(sharedProduct: SharedProductInfo)
+
+    @Query("SELECT * FROM sharedProductInfo WHERE productId = :productId")
+    fun getSharedProductsByProductId(productId: Int): Flow<List<SharedProductInfo>>
+
+    @Query("DELETE FROM sharedProductInfo WHERE productId = :productId")
+    suspend fun deleteSharedProductsByProductId(productId: Int)
 
 }
+
 

@@ -27,7 +27,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
@@ -64,7 +63,6 @@ import com.example.scanner1000.ui.theme.Rubik
 import java.math.RoundingMode
 
 
-
 @Composable
 fun ProductsWithCategoryScreen(
     productId: Int,
@@ -82,13 +80,13 @@ fun ProductsWithCategoryScreen(
     var filteredProducts = products
 
     var allSelected by remember { mutableStateOf(false) }
-    var splitSelected by remember { mutableStateOf(true) }
-    var notSplitSelected by remember { mutableStateOf(false) }
+    var splitSelected by remember { mutableStateOf(false) }
+    var notSplitSelected by remember { mutableStateOf(true) }
     var showSplitDialog by remember { mutableStateOf(false) }
 
     filteredProducts = when {
-        splitSelected -> products.filter { !it.isSplit }
-        notSplitSelected -> products.filter { it.isSplit }
+        splitSelected -> products.filter { it.isSplit }
+        notSplitSelected -> products.filter { !it.isSplit }
         else -> products
     }
 
@@ -132,12 +130,16 @@ fun ProductsWithCategoryScreen(
                     fontFamily = Rubik,
                     fontStyle = FontStyle.Normal,
                     fontWeight = FontWeight.Light,
-                    modifier = Modifier.padding(bottom = 10.dp, top = 10.dp, start = 20.dp).weight(3f)
+                    modifier = Modifier
+                        .padding(bottom = 10.dp, top = 10.dp, start = 20.dp)
+                        .weight(3f)
                 )
                 if (notSplitSelected) {
                     IconButton(
                         onClick = { /*TODO*/ },
-                        modifier = Modifier.weight(1f).padding(start = 5.dp)
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(start = 5.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.LibraryAddCheck,
@@ -399,7 +401,10 @@ fun SplitAlertDialog(
     productViewModel: ProductViewModel
 ) {
 
-    val selectedFriendIds = friendViewModel.checkedFriendsIds.value
+
+   // val selectedFriendIds = remember { mutableStateListOf<Int>() }
+    val selectedFriendIds = friendViewModel.checkedFriendsIds.collectAsState(initial = emptyList()).value
+
     val state = friendViewModel.state.collectAsState().value
     var showAddDialog by remember { mutableStateOf(false) }
     val sumOfCheckedProducts by productViewModel.sumOfCheckedProducts.collectAsState(initial = null)
@@ -411,6 +416,7 @@ fun SplitAlertDialog(
         } else {
             null
         }
+    val checkedProductIds by productViewModel.checkedProductIds.collectAsState(initial = emptyList())
 
     Dialog(onDismissRequest = { onDismiss() }) {
         Surface(
@@ -434,7 +440,7 @@ fun SplitAlertDialog(
                 Spacer(modifier = Modifier.height(10.dp))
                 LazyColumn {
                     items(state.friends) { friend ->
-                        FriendCheckbox(friend = friend, friendViewModel,amountPerFriend)
+                        FriendCheckbox(friend = friend, friendViewModel, amountPerFriend)
                     }
                 }
                 if (showAddDialog) {
@@ -476,6 +482,17 @@ fun SplitAlertDialog(
                                     friendViewModel.decreaseBalanceForCheckedFriends(amountPerFriend)
                                 }
                                 productViewModel.updateProductsAsSplit()
+                                productViewModel.resetProductsCheckedStatus()
+
+                                checkedProductIds.forEach { productId ->
+                                    if (amountPerFriend != null) {
+                                        productViewModel.addSharedProductInfo(
+                                            productId,
+                                            selectedFriendIds,
+                                            amountPerFriend
+                                        )
+                                    }
+                                }
 
                                 Log.d(
                                     "YourScreen",
@@ -501,9 +518,12 @@ fun SplitAlertDialog(
 }
 
 
-
 @Composable
-fun FriendCheckbox(friend: Friend, friendViewModel: FriendViewModel,amountPerFriend: Double?) {
+fun FriendCheckbox(
+    friend: Friend,
+    friendViewModel: FriendViewModel,
+    amountPerFriend: Double?
+) {
 
     Row(
         verticalAlignment = Alignment.CenterVertically,

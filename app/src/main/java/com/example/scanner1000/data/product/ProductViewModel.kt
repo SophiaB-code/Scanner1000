@@ -6,6 +6,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.scanner1000.data.Product
 import com.example.scanner1000.data.ProductDao
+import com.example.scanner1000.data.SharedProductDao
+import com.example.scanner1000.data.SharedProductInfo
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,7 +21,8 @@ import kotlinx.coroutines.launch
 
 
 class ProductViewModel(
-    private val dao: ProductDao
+    private val dao: ProductDao,
+    private val sharedProductDao: SharedProductDao
 ) : ViewModel() {
     private val isSortedByName = MutableStateFlow(true)
     val sumOfCheckedProducts: Flow<Double?> = dao.getSumOfCheckedProducts()
@@ -91,7 +94,6 @@ class ProductViewModel(
         // Możesz też aktualizować stan w pamięci, jeśli trzymasz tam listę produktów
     }
 
-
     fun updateProductsAsSplit() = viewModelScope.launch {
         dao.updateProductsAsSplit()
     }
@@ -100,9 +102,13 @@ class ProductViewModel(
             dao.resetProductsCheckedStatus()
         }
     }
+    fun addSharedProductInfo(productId: Int, sharedWith: List<Int>, amountPerFriend: Double) = viewModelScope.launch {
+        val newSharedProduct = SharedProductInfo(productId = productId, amountPerFriend = amountPerFriend, sharedWith = sharedWith)
+        sharedProductDao.insertSharedProduct(newSharedProduct)
+    }
 
-
-
+    // Funkcja zwracająca Flow z listą ID zaznaczonych produktów
+    val checkedProductIds: Flow<List<Int>> = dao.getCheckedProductsIds()
 
 }
 

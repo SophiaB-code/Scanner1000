@@ -1,7 +1,7 @@
 package com.example.scanner1000.data
-
-//data class SharedProduct(
+//
+//data class SharedProductInfo(
 //    val productId: Int,
-//    val amountPerFriend: Double,
-//    val sharedWith: List<Int> // Lista ID przyjaciół
+//    val sharedWith: List<Int>,
+//    val amountPerFriend: Double
 //)

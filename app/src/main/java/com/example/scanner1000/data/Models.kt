@@ -6,7 +6,7 @@ import androidx.room.PrimaryKey
 
 
 @Entity(tableName = "category")
-data class Category (
+data class Category(
     val title: String,
     val dateAdded: Long,
 
@@ -15,7 +15,7 @@ data class Category (
 )
 
 @Entity(tableName = "product")
-data class Product (
+data class Product(
     val name: String,
     val price: Double,
     val dateAdded: Long,
@@ -28,7 +28,7 @@ data class Product (
 )
 
 @Entity(tableName = "friend")
-data class Friend (
+data class Friend(
     val name: String,
     val balance: Double,
     val isChecked: Boolean = false,
@@ -37,5 +37,14 @@ data class Friend (
     val id: Int = 0
 )
 
+@Entity(tableName = "sharedProductInfo")
+data class SharedProductInfo(
+    val productId: Int,
+    val sharedWith: List<Int>,
+    val amountPerFriend: Double,
+
+    @PrimaryKey(autoGenerate = true)
+    val id: Int = 0
+)
 
 

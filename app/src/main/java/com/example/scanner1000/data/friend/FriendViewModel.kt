@@ -98,10 +98,14 @@ class FriendViewModel(private val dao: FriendDao) : ViewModel() {
     }
     private val _checkedFriendsIds = MutableStateFlow<List<Int>>(emptyList())
     val checkedFriendsIds: StateFlow<List<Int>> = _checkedFriendsIds
+
+    init {
+        getCheckedFriendsIds()
+    }
     fun getCheckedFriendsIds() {
         viewModelScope.launch {
-            dao.getCheckedFriendsIds().collect { friends ->
-                _checkedFriendsIds.value = friends
+            dao.getCheckedFriendsIds().collect { ids ->
+                _checkedFriendsIds.value = ids
             }
         }
     }
