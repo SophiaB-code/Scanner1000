@@ -3,6 +3,7 @@ package com.example.scanner1000.ui.screens
 import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -29,6 +30,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
@@ -82,17 +85,13 @@ fun ProductsWithCategoryScreen(
     }
 
     val products = productViewModel.productsWithCategory.collectAsState().value
-
     var filteredProducts = products
-
     var allSelected by remember { mutableStateOf(false) }
     var splitSelected by remember { mutableStateOf(false) }
     var notSplitSelected by remember { mutableStateOf(true) }
     var showSplitDialog by remember { mutableStateOf(false) }
     var isIconFilled by remember { mutableStateOf(false) }
-
     var showAddProductDialog by remember { mutableStateOf(false) }
-
     val categoryName =
         categoryViewModel.getCategoryTitleById(categoryId).collectAsState(initial = "")
 
@@ -125,7 +124,6 @@ fun ProductsWithCategoryScreen(
                     ) {
                         Text(text = "Podziel")
                     }
-
                 }
             }
         }
@@ -244,7 +242,7 @@ fun ProductsWithCategoryScreen(
                             }
                         } else {
                             null
-                        },
+                        }
                     )
                 }
                 item {
@@ -269,7 +267,7 @@ fun ProductsWithCategoryScreen(
                             }
                         } else {
                             null
-                        },
+                        }
                     )
                 }
                 item {
@@ -297,10 +295,7 @@ fun ProductsWithCategoryScreen(
                         },
                     )
                 }
-
-
             }
-
             Card(
                 modifier = Modifier
                     .fillMaxSize()
@@ -320,10 +315,15 @@ fun ProductsWithCategoryScreen(
                                 productViewModel,
                                 allSelected = true,
                                 splitSelected = false,
-                                notSplitSelected = false
+                                notSplitSelected = false,
+                                onDeleteProduct = {
+                                    productViewModel.onEvent(
+                                        ProductEvent.DeleteProduct(
+                                            product
+                                        )
+                                    )
+                                }
                             )
-
-
                         }
                     }
                 }
@@ -338,10 +338,15 @@ fun ProductsWithCategoryScreen(
                                 productViewModel,
                                 allSelected = false,
                                 splitSelected = false,
-                                notSplitSelected = true
+                                notSplitSelected = true,
+                                onDeleteProduct = {
+                                    productViewModel.onEvent(
+                                        ProductEvent.DeleteProduct(
+                                            product
+                                        )
+                                    )
+                                }
                             )
-
-
                         }
                     }
                 }
@@ -356,17 +361,19 @@ fun ProductsWithCategoryScreen(
                                 productViewModel,
                                 allSelected = false,
                                 splitSelected = true,
-                                notSplitSelected = false
+                                notSplitSelected = false,
+                                onDeleteProduct = {
+                                    productViewModel.onEvent(
+                                        ProductEvent.DeleteProduct(
+                                            product
+                                        )
+                                    )
+                                }
                             )
-
-
                         }
                     }
                 }
-
             }
-
-
         }
     }
     DisposableEffect(Unit) {
@@ -383,11 +390,23 @@ fun ProductButton(
     productViewModel: ProductViewModel,
     allSelected: Boolean,
     splitSelected: Boolean,
-    notSplitSelected: Boolean
+    notSplitSelected: Boolean,
+    onDeleteProduct: () -> Unit,
 ) {
-
+    var showAlertDialog by remember { mutableStateOf(false) }
     var showProductEditDialog by remember { mutableStateOf(false) }
+    var expanded by remember { mutableStateOf(false) }
 
+    if (showAlertDialog) {
+        DeleteAlertDialog(
+            message = "Czy na pewno chcesz usunąć produkt?",
+            onDismissRequest = { showAlertDialog = false },
+            onConfirmation = {
+                onDeleteProduct()
+                showAlertDialog = false
+            }
+        )
+    }
     if (showProductEditDialog) {
         EditProductDialog(
             onDismiss = { showProductEditDialog = false },
@@ -405,66 +424,85 @@ fun ProductButton(
             .clickable(onClick = { showProductEditDialog = true }),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant
-
         )
     ) {
-
         Row(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(start = 12.dp),
-
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(
-
-                text = product.name,
-                fontSize = MaterialTheme.typography.titleMedium.fontSize,
-                color = Color.Black,
-                modifier = Modifier
-                    .weight(3f)
-                    .padding(8.dp),
-                style = TextStyle(
-                    fontFamily = Rubik,
-                    fontStyle = FontStyle.Normal,
-                    fontWeight = FontWeight.Light
+            Row(
+                modifier = Modifier.weight(8f),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = product.name,
+                    fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                    color = Color.Black,
+                    modifier = Modifier
+                        .weight(3f)
+                        .padding(8.dp),
+                    style = TextStyle(
+                        fontFamily = Rubik,
+                        fontStyle = FontStyle.Normal,
+                        fontWeight = FontWeight.Light
+                    )
                 )
-
+                Text(
+                    text = " ${product.price} zł",
+                    fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                    color = Color.Black,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(8.dp),
+                    style = TextStyle(
+                        fontFamily = Rubik,
+                        fontStyle = FontStyle.Normal,
+                        fontWeight = FontWeight.Light
+                    ),
+                    textAlign = TextAlign.End
                 )
-
-            Text(
-
-                text = " ${product.price} zł",
-                fontSize = MaterialTheme.typography.titleMedium.fontSize,
-                color = Color.Black,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(8.dp),
-                style = TextStyle(
-                    fontFamily = Rubik,
-                    fontStyle = FontStyle.Normal,
-                    fontWeight = FontWeight.Light
-                ),
-
-                )
-            if (notSplitSelected) {
-                Checkbox(checked = product.isChecked,
-                    onCheckedChange = { isChecked ->
-                        productViewModel.setProductChecked(product, isChecked)
-                    })
             }
-            if (allSelected || splitSelected) {
-                IconButton(onClick = { /*TODO*/ }) {
-                    Icon(imageVector = Icons.Rounded.MoreVert, contentDescription = "")
+            Box(
+                modifier = Modifier.weight(1f)
+            ) {
+
+                if (notSplitSelected) {
+                    Checkbox(checked = product.isChecked,
+                        onCheckedChange = { isChecked ->
+                            productViewModel.setProductChecked(product, isChecked)
+                        })
+                }
+                if (allSelected || splitSelected) {
+                    IconButton(onClick = { expanded = true }) {
+                        Icon(imageVector = Icons.Rounded.MoreVert, contentDescription = "")
+                    }
+                    DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        if (product.isSplit) {
+                            DropdownMenuItem(
+                                text = { Text("Cofnij podział") },
+                                onClick = {
+                                    expanded = false
+                                }
+                            )
+                        }
+                        DropdownMenuItem(
+                            text = { Text("Usuń") },
+                            onClick = {
+                                expanded = false
+                                showAlertDialog = true
+                            }
+                        )
+                    }
                 }
             }
-
         }
-
-
     }
-
 }
 
 
@@ -745,10 +783,10 @@ fun AddProductDialog(
                         productName = it
                     },
                     textStyle =
-                        TextStyle(
-                            fontFamily = Rubik,
-                            fontStyle = FontStyle.Normal,
-                            fontWeight = FontWeight.Light
+                    TextStyle(
+                        fontFamily = Rubik,
+                        fontStyle = FontStyle.Normal,
+                        fontWeight = FontWeight.Light
 
                     ),
                     label = {

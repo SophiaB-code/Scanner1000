@@ -36,6 +36,9 @@ interface CategoryDao {
 @Dao
 interface ProductDao {
 
+    @Query("DELETE FROM product WHERE id = :productId")
+    suspend fun deleteProductById(productId: Int)
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertProduct(product: Product)
 
@@ -146,6 +149,12 @@ interface FriendDao {
 
     @Query("SELECT name FROM friend WHERE id = :friendId")
     fun getFriendNameById(friendId: Int): Flow<String>
+
+    @Query("SELECT balance FROM friend WHERE id = :friendId")
+    suspend fun getFriendBalanceById(friendId: Int): Double
+
+    @Query("UPDATE friend SET balance = :newBalance WHERE id = :friendId")
+    suspend fun updateFriendBalance(friendId: Int, newBalance: Double)
 }
 
 @Dao
@@ -173,6 +182,9 @@ interface SharedProductDao {
         WHERE spi.friendId = :friendId
     """)
     fun getProductInfoForFriend(friendId: Int): Flow<List<ProductInfoForFriend>>
+
+    @Query("DELETE FROM sharedProductInfo WHERE productId = :productId")
+    suspend fun deleteSharedInfoByProductId(productId: Int)
 }
 data class ProductInfoForFriend(
     val name: String,

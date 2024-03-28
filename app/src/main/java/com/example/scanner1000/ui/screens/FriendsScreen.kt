@@ -200,10 +200,14 @@ fun FriendButton(
     val refundsForFriend by friendViewModel.getRefundsForFriend(friendId)
         .collectAsState(initial = emptyList())
 
-    if(showAlertDialog){
-        DeleteFriendAlertDialog(
-            onDismissRequest = { showAlertDialog = false},
-            onConfirmation = { onDeleteFriend() }
+    if (showAlertDialog) {
+        DeleteAlertDialog(
+            message = "Czy na pewno chcesz usunąć znajomego?",
+            onDismissRequest = { showAlertDialog = false },
+            onConfirmation = {
+                onDeleteFriend()
+                showAlertDialog = false
+            }
         )
     }
     Card(
@@ -429,7 +433,8 @@ fun FriendButton(
 }
 
 @Composable
-fun DeleteFriendAlertDialog(
+fun DeleteAlertDialog(
+    message: String,
     onDismissRequest: () -> Unit,
     onConfirmation: () -> Unit
 ) {
@@ -454,7 +459,7 @@ fun DeleteFriendAlertDialog(
                     tint = md_theme_light_onPrimaryContainer
                 )
                 Text(
-                    text = "Czy na pewno chcesz usunąć znajomego?",
+                    text = message,
                     modifier = Modifier.padding(16.dp),
                     textAlign = TextAlign.Center
 

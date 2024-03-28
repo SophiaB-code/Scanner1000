@@ -4,6 +4,7 @@ package com.example.scanner1000.data.product
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.scanner1000.data.FriendDao
 import com.example.scanner1000.data.Product
 import com.example.scanner1000.data.ProductDao
 import com.example.scanner1000.data.ProductInfoForFriend
@@ -15,6 +16,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -22,17 +24,18 @@ import kotlinx.coroutines.launch
 
 
 class ProductViewModel(
-    private val dao: ProductDao,
-    private val sharedProductDao: SharedProductDao
+    private val productDao: ProductDao,
+    private val sharedProductDao: SharedProductDao,
+    private val friendDao: FriendDao
 ) : ViewModel() {
     private val isSortedByName = MutableStateFlow(true)
-    val sumOfCheckedProducts: Flow<Double?> = dao.getSumOfCheckedProducts()
+    val sumOfCheckedProducts: Flow<Double?> = productDao.getSumOfCheckedProducts()
 
 
     @OptIn(ExperimentalCoroutinesApi::class)
     var products =
         isSortedByName.flatMapLatest {
-                dao.getProductsOrderedByName()
+            productDao.getProductsOrderedByName()
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
 
     val _state = MutableStateFlow(ProductState())
@@ -46,14 +49,9 @@ class ProductViewModel(
     private val _productsWithCategory = MutableStateFlow<List<Product>>(emptyList())
     val productsWithCategory: StateFlow<List<Product>> = _productsWithCategory
 
-
     fun onEvent(event: ProductEvent) {
         when (event) {
-            is ProductEvent.DeleteProduct -> {
-                viewModelScope.launch {
-                    dao.deleteProduct(event.product)
-                }
-            }
+            is ProductEvent.DeleteProduct -> deleteProductAndRefundFriends(event.product)
 
             is ProductEvent.SaveProduct -> {
                 val product = Product(
@@ -63,13 +61,10 @@ class ProductViewModel(
                     categoryFk = event.categoryFk,
                     isSplit = state.value.isSplit.value,
                     isChecked = state.value.isChecked.value,
-
                 )
-
                 viewModelScope.launch {
-                    dao.upsertProduct(product)
+                    productDao.upsertProduct(product)
                 }
-
                 _state.update {
                     it.copy(
                         name = mutableStateOf(""),
@@ -77,13 +72,12 @@ class ProductViewModel(
                     )
                 }
             }
+
             is ProductEvent.EditProduct -> {
                 viewModelScope.launch {
-                    dao.updateProduct(event.product) // Załóżmy, że masz taką metodę
+                    productDao.updateProduct(event.product) // Załóżmy, że masz taką metodę
                 }
-
             }
-
 
             ProductEvent.SortProducts -> {
                 isSortedByName.value = !isSortedByName.value
@@ -95,59 +89,64 @@ class ProductViewModel(
 
     fun getProductsWithCategory(categoryId: Int) {
         viewModelScope.launch {
-            dao.getProductsWithCategory(categoryId).collect { products ->
+            productDao.getProductsWithCategory(categoryId).collect { products ->
                 _productsWithCategory.value = products
-                }
             }
         }
+    }
 
     fun setProductChecked(product: Product, isChecked: Boolean) = viewModelScope.launch {
-        dao.updateProductIsChecked(product.id, isChecked)
+        productDao.updateProductIsChecked(product.id, isChecked)
     }
 
     fun setNotSplitProductsChecked(isChecked: Boolean) = viewModelScope.launch {
-        dao.setNotSplitProductsChecked(isChecked)
+        productDao.setNotSplitProductsChecked(isChecked)
     }
 
     fun updateProductsAsSplit() = viewModelScope.launch {
-        dao.updateProductsAsSplit()
+        productDao.updateProductsAsSplit()
     }
+
     fun resetProductsCheckedStatus() {
         viewModelScope.launch {
-            dao.resetProductsCheckedStatus()
+            productDao.resetProductsCheckedStatus()
         }
     }
-    fun addSharedProductInfo(productId: Int, friendId: Int, amountPerFriend: Double) = viewModelScope.launch {
-        val newSharedProduct = SharedProductInfo(productId = productId, amountPerFriend = amountPerFriend, friendId = friendId)
-        sharedProductDao.insertSharedProduct(newSharedProduct)
-    }
-    fun getProductNameById(productId: Int): Flow<String> {
-        return dao.getProductNameById(productId)
-    }
-    fun getGroupedByFriendSharedProducts(friendId: Int): Flow<List<SharedProductInfo>> {
-        return sharedProductDao.getGroupedByFriendSharedProduct(friendId)
-    }
+    fun addSharedProductInfo(productId: Int, friendId: Int, amountPerFriend: Double) =
+        viewModelScope.launch {
+            val newSharedProduct = SharedProductInfo(
+                productId = productId,
+                amountPerFriend = amountPerFriend,
+                friendId = friendId
+            )
+            sharedProductDao.insertSharedProduct(newSharedProduct)
+        }
 
-
-    val checkedProductIds: Flow<List<Int>> = dao.getCheckedProductsIds()
+    val checkedProductIds: Flow<List<Int>> = productDao.getCheckedProductsIds()
 
     fun addProduct(product: Product) = viewModelScope.launch {
-        dao.upsertProduct(product)
-    }
-
-    fun deleteProduct(product: Product) = viewModelScope.launch {
-        dao.deleteProduct(product)
+        productDao.upsertProduct(product)
     }
     fun getProductInfoForFriend(friendId: Int): Flow<List<ProductInfoForFriend>> {
         return sharedProductDao.getProductInfoForFriend(friendId)
     }
+    private fun deleteProductAndRefundFriends(product: Product) = viewModelScope.launch {
+        // Usunięcie produktu
+        productDao.deleteProductById(product.id)
 
-    suspend fun createProductAndReturnId(product: Product): Int {
-        dao.updateProduct(product)
-        // Tu zakładamy, że `insertProduct` zwraca ID nowo utworzonego produktu
-        return dao.getLastInsertedProductId()
+        // Pobranie wszystkich powiązanych informacji o podziale produktu
+        val sharedInfoList = sharedProductDao.getSharedProductsByProductId(product.id).first()
+
+        // Usunięcie powiązanych informacji o podziale produktu
+        sharedProductDao.deleteSharedProductsByProductId(product.id)
+
+        // Aktualizacja bilansu przyjaciół na podstawie usuniętych informacji o podziale produktu
+        sharedInfoList.forEach { sharedInfo ->
+            val currentBalance = friendDao.getFriendBalanceById(sharedInfo.friendId)
+            val newBalance = currentBalance + sharedInfo.amountPerFriend
+            friendDao.updateFriendBalance(sharedInfo.friendId, newBalance)
+        }
     }
-
 
 }
 

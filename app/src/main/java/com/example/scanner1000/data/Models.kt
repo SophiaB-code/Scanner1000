@@ -1,6 +1,7 @@
 package com.example.scanner1000.data
 
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -39,9 +40,9 @@ data class Friend(
 
 @Entity(tableName = "sharedProductInfo")
 data class SharedProductInfo(
-    val productId: Int,
-    val friendId: Int,
-    val amountPerFriend: Double,
+    @ColumnInfo(name = "productId")  val productId: Int,
+    @ColumnInfo(name = "friendId") val friendId: Int,
+    @ColumnInfo(name = "amountPerFriend") val amountPerFriend: Double,
 
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0

@@ -365,7 +365,7 @@ fun CategoryButton(category: Category, isSelected: Boolean, onSelectCategory: (I
     ) {
         Text(
             text = category.title,
-            fontSize = MaterialTheme.typography.titleMedium.fontSize,
+            fontSize = MaterialTheme.typography.titleLarge.fontSize,
             modifier = Modifier.padding(16.dp),
             color = if (isSelected) md_theme_light_primaryContainer else md_theme_light_onPrimaryContainer,
             style = TextStyle(

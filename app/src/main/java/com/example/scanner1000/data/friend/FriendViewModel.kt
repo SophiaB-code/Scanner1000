@@ -118,6 +118,7 @@ class FriendViewModel(private val dao: FriendDao, private val refundDao: RefundD
         refundDao.insertRefund(refund)
     }
 
+
     init {
         initializeDefaultFriend()
     }
