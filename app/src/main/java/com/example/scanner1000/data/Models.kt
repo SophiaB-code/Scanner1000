@@ -46,5 +46,13 @@ data class SharedProductInfo(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0
 )
+@Entity(tableName = "refunds")
+data class Refund(
+    val friendId: Int,
+    val amount: Double,
+    val description: String,
 
+    @PrimaryKey(autoGenerate = true)
+    val id: Int = 0
+)
 

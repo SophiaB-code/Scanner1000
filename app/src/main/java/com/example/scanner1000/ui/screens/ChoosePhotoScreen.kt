@@ -1,6 +1,7 @@
 package com.example.scanner1000.ui.screens
 
 import android.app.Activity
+import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.os.Build
 import android.provider.MediaStore
@@ -28,6 +29,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -49,6 +54,7 @@ fun ChoosePhotoScreen(
     selectedCategoryId: Int?
 )
 {
+    var bitmap: Bitmap? by remember { mutableStateOf(null) }
     val context = LocalContext.current as Activity
     val tempProducts = textRecognizingViewModel.tempRecognizedProducts.value
 
@@ -135,7 +141,11 @@ fun ChoosePhotoScreen(
                         label = "Aparat",
                         imageVector = Icons.Filled.CameraAlt,
                         onClick = {
-                            // Implementacja uruchomienia aparatu i przycięcia zdjęcia będzie tutaj
+                            val cropOptions = CropImageContractOptions(
+                                null,
+                                CropImageOptions(imageSourceIncludeGallery = false)
+                            )
+                            imageCropLauncher.launch(cropOptions)
                         },
                         contentDescription = "Zrób zdjęcie aparatem",
                         colors = CardDefaults.cardColors(

@@ -203,26 +203,33 @@ fun ChooseCategoryScreen(
                     }
 
                     Spacer(modifier = Modifier.height(10.dp))
-                    val listState = rememberLazyListState()
-                    LazyColumnScrollbar(
-                        listState,
-                        rightSide = true,
-                        alwaysShowScrollBar = true,
-                        thumbColor = md_theme_light_onPrimaryContainer,
-                        thumbSelectedColor = md_theme_light_onPrimaryContainer,
-                        thickness = 4.dp,
-                        padding = 3.dp
-                    ) {
-                        LazyColumn(state = listState) {
-                            val filteredCategories = state.categories.filterNot { it.id == 1 }
-                            items(filteredCategories) { category ->
-                                CategoryButton(
-                                    category = category,
-                                    isSelected = selectedCategoryId == category.id,
-                                    onSelectCategory = {
-                                        selectedCategoryId = it
-                                    }
-                                )
+
+                    val filteredCategories = state.categories.filterNot { it.id == 1 }
+
+                    if (filteredCategories.isEmpty()) {
+                        Text(text = "Brak kategorii", Modifier.padding(5.dp))
+                    } else {
+
+                        val listState = rememberLazyListState()
+                        LazyColumnScrollbar(
+                            listState,
+                            rightSide = true,
+                            alwaysShowScrollBar = true,
+                            thumbColor = md_theme_light_onPrimaryContainer,
+                            thumbSelectedColor = md_theme_light_onPrimaryContainer,
+                            thickness = 4.dp,
+                            padding = 3.dp
+                        ) {
+                            LazyColumn(state = listState) {
+                                items(filteredCategories) { category ->
+                                    CategoryButton(
+                                        category = category,
+                                        isSelected = selectedCategoryId == category.id,
+                                        onSelectCategory = {
+                                            selectedCategoryId = it
+                                        }
+                                    )
+                                }
                             }
                         }
                     }

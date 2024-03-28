@@ -88,7 +88,11 @@ interface ProductDao {
     @Query("UPDATE product SET isChecked = :isChecked WHERE isSplit = 0")
     suspend fun setNotSplitProductsChecked(isChecked: Boolean)
 
+    @Query("SELECT name FROM product WHERE id = :productId")
+    fun getProductNameById(productId: Int): Flow<String>
 
+    @Query("SELECT MAX(id) FROM product")
+    suspend fun getLastInsertedProductId(): Int
 }
 
 @Dao
@@ -139,6 +143,9 @@ interface FriendDao {
 
     @Query("SELECT * FROM friend WHERE name = :name")
     suspend fun findFriendByName(name: String): Friend?
+
+    @Query("SELECT name FROM friend WHERE id = :friendId")
+    fun getFriendNameById(friendId: Int): Flow<String>
 }
 
 @Dao
@@ -149,9 +156,35 @@ interface SharedProductDao {
     @Query("SELECT * FROM sharedProductInfo WHERE productId = :productId")
     fun getSharedProductsByProductId(productId: Int): Flow<List<SharedProductInfo>>
 
+    @Query("SELECT * FROM sharedProductInfo WHERE friendId = :friendId")
+    fun getSharedProductsByFriendId(friendId: Int): Flow<List<SharedProductInfo>>
+
+
     @Query("DELETE FROM sharedProductInfo WHERE productId = :productId")
     suspend fun deleteSharedProductsByProductId(productId: Int)
 
+    @Query("SELECT * FROM sharedProductInfo GROUP BY friendId = :friendId")
+    fun getGroupedByFriendSharedProduct(friendId: Int): Flow<List<SharedProductInfo>>
+
+    @Query("""
+        SELECT p.name, spi.amountPerFriend
+        FROM sharedProductInfo spi
+        INNER JOIN product p ON spi.productId = p.id
+        WHERE spi.friendId = :friendId
+    """)
+    fun getProductInfoForFriend(friendId: Int): Flow<List<ProductInfoForFriend>>
+}
+data class ProductInfoForFriend(
+    val name: String,
+    val amountPerFriend: Double
+)
+
+@Dao
+interface RefundDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertRefund(refund: Refund)
+    @Query("SELECT * FROM refunds WHERE friendId = :friendId")
+    fun getRefundsForFriend(friendId: Int): Flow<List<Refund>>
 }
 
 

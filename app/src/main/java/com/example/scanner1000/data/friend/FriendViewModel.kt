@@ -5,6 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.scanner1000.data.Friend
 import com.example.scanner1000.data.FriendDao
+import com.example.scanner1000.data.Refund
+import com.example.scanner1000.data.RefundDao
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,7 +19,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.math.RoundingMode
 
-class FriendViewModel(private val dao: FriendDao) : ViewModel() {
+class FriendViewModel(private val dao: FriendDao, private val refundDao: RefundDao) : ViewModel() {
 
     private val getAllFriends = MutableStateFlow(true)
     val checkedFriendsCount: Flow<Int> = dao.getCheckedFriendsCount()
@@ -83,9 +85,6 @@ class FriendViewModel(private val dao: FriendDao) : ViewModel() {
     fun setFriendChecked(friend: Friend, isChecked: Boolean) = viewModelScope.launch {
         dao.updateFriendIsChecked(friend.id, isChecked)
     }
-    fun getAllFriends() = viewModelScope.launch {
-        dao.getAllFriends()
-    }
 
     val checkedFriendsIds: Flow<List<Int>> = dao.getCheckedFriendsIds()
 
@@ -106,11 +105,24 @@ class FriendViewModel(private val dao: FriendDao) : ViewModel() {
             .setScale(2, RoundingMode.HALF_EVEN).toDouble()
         dao.updateFriend(friend.copy(balance = newBalance))
     }
+
+    fun getRefundsForFriend(friendId: Int): Flow<List<Refund>> {
+        return refundDao.getRefundsForFriend(friendId)
+    }
+    fun addRefund(friendId: Int, amount: Double, description: String = "ZWROT") = viewModelScope.launch {
+        val refund = Refund(friendId = friendId, amount = amount, description = description)
+        refundDao.insertRefund(refund)
+    }
+    fun addExpense(friendId: Int, amount: Double, description: String) = viewModelScope.launch {
+        val refund = Refund(friendId = friendId, amount = amount, description = description)
+        refundDao.insertRefund(refund)
+    }
+
     init {
         initializeDefaultFriend()
     }
 
-    fun initializeDefaultFriend() = viewModelScope.launch {
+    private fun initializeDefaultFriend() = viewModelScope.launch {
         val defaultFriendName = "Ja"
         val existingFriend = dao.findFriendByName(defaultFriendName)
         if (existingFriend == null) {

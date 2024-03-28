@@ -21,6 +21,7 @@ import com.example.scanner1000.data.friend.FriendViewModel
 import com.example.scanner1000.data.product.ProductViewModel
 import com.example.scanner1000.ui.screens.ChooseCategoryScreen
 import com.example.scanner1000.ui.screens.ChoosePhotoScreen
+import com.example.scanner1000.ui.screens.FriendsScreen
 import com.example.scanner1000.ui.screens.MainScreen
 import com.example.scanner1000.ui.screens.ProductsWithCategoryScreen
 import com.example.scanner1000.ui.screens.ReceiptsScreen
@@ -70,7 +71,7 @@ class MainActivity : ComponentActivity() {
         factoryProducer = {
             object : ViewModelProvider.Factory {
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    return FriendViewModel(database.friendDao()) as T
+                    return FriendViewModel(database.friendDao(), database.refundDao()) as T
                 }
             }
         }
@@ -92,6 +93,7 @@ class MainActivity : ComponentActivity() {
                         composable("mainScreen") {
                             MainScreen(
                                 viewModelFriend,
+                                viewModelPro,
                                 navController
                             )
                         }
@@ -135,6 +137,13 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
                         }
+                        composable("friendsScreen") {
+                            FriendsScreen(
+                               viewModelFriend,
+                                viewModelPro
+                            )
+                        }
+
 
                     }
                 }

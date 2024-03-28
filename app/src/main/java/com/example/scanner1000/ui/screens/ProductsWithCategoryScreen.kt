@@ -2,7 +2,6 @@ package com.example.scanner1000.ui.screens
 
 import android.util.Log
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -51,11 +50,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -94,7 +93,8 @@ fun ProductsWithCategoryScreen(
 
     var showAddProductDialog by remember { mutableStateOf(false) }
 
-    val categoryName = categoryViewModel.getCategoryTitleById(categoryId).collectAsState(initial = "")
+    val categoryName =
+        categoryViewModel.getCategoryTitleById(categoryId).collectAsState(initial = "")
 
 
     filteredProducts = when {
@@ -388,12 +388,13 @@ fun ProductButton(
 
     var showProductEditDialog by remember { mutableStateOf(false) }
 
-    if(showProductEditDialog){
+    if (showProductEditDialog) {
         EditProductDialog(
             onDismiss = { showProductEditDialog = false },
             productViewModel = productViewModel,
-            onEditProduct = {updatedProduct ->
-                productViewModel.onEvent(ProductEvent.EditProduct(updatedProduct))},
+            onEditProduct = { updatedProduct ->
+                productViewModel.onEvent(ProductEvent.EditProduct(updatedProduct))
+            },
             product = product
         )
     }
@@ -401,15 +402,7 @@ fun ProductButton(
         modifier = Modifier
             .fillMaxWidth()
             .height(40.dp)
-            .clickable(onClick = {showProductEditDialog = true },)
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onLongPress = {
-                        // perform some action here..
-                        showProductEditDialog = true
-                    }
-                )
-            },
+            .clickable(onClick = { showProductEditDialog = true }),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant
 
@@ -432,17 +425,27 @@ fun ProductButton(
                 modifier = Modifier
                     .weight(3f)
                     .padding(8.dp),
+                style = TextStyle(
+                    fontFamily = Rubik,
+                    fontStyle = FontStyle.Normal,
+                    fontWeight = FontWeight.Light
+                )
 
                 )
 
             Text(
 
-                text = product.price.toString() + " zł",
+                text = " ${product.price} zł",
                 fontSize = MaterialTheme.typography.titleMedium.fontSize,
                 color = Color.Black,
                 modifier = Modifier
                     .weight(1f)
                     .padding(8.dp),
+                style = TextStyle(
+                    fontFamily = Rubik,
+                    fontStyle = FontStyle.Normal,
+                    fontWeight = FontWeight.Light
+                ),
 
                 )
             if (notSplitSelected) {
@@ -729,7 +732,8 @@ fun AddProductDialog(
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(5.dp)
+                        .padding(5.dp),
+                    textAlign = TextAlign.Center
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 OutlinedTextField(
@@ -740,9 +744,12 @@ fun AddProductDialog(
                     onValueChange = {
                         productName = it
                     },
-                    textStyle = TextStyle(
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 17.sp
+                    textStyle =
+                        TextStyle(
+                            fontFamily = Rubik,
+                            fontStyle = FontStyle.Normal,
+                            fontWeight = FontWeight.Light
+
                     ),
                     label = {
                         Text(
@@ -772,10 +779,14 @@ fun AddProductDialog(
                         }
 
                     },
-                    textStyle = TextStyle(
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 17.sp
+                    textStyle =
+                    TextStyle(
+                        fontFamily = Rubik,
+                        fontStyle = FontStyle.Normal,
+                        fontWeight = FontWeight.Light
+
                     ),
+
                     label = {
                         Text(
                             "Cena",
@@ -805,7 +816,14 @@ fun AddProductDialog(
                         onClick = { onDismiss() },
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text("Anuluj")
+                        Text(
+                            "Anuluj",
+                            style = TextStyle(
+                                fontFamily = Rubik,
+                                fontStyle = FontStyle.Normal,
+                                fontWeight = FontWeight.Light
+                            ),
+                        )
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     TextButton(
@@ -825,7 +843,14 @@ fun AddProductDialog(
                         },
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text("Zapisz")
+                        Text(
+                            "Zapisz",
+                            style = TextStyle(
+                                fontFamily = Rubik,
+                                fontStyle = FontStyle.Normal,
+                                fontWeight = FontWeight.Light
+                            ),
+                        )
                     }
                 }
             }
@@ -860,10 +885,16 @@ fun EditProductDialog(
 
                 Text(
                     text = "Edytuj produkt",
-                    style = MaterialTheme.typography.bodyLarge,
+                    fontSize = MaterialTheme.typography.titleMedium.fontSize,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(5.dp)
+                        .padding(5.dp),
+                    textAlign = TextAlign.Center,
+                    style = TextStyle(
+                        fontFamily = Rubik,
+                        fontStyle = FontStyle.Normal,
+                        fontWeight = FontWeight.Normal
+                    ),
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 OutlinedTextField(
@@ -875,16 +906,26 @@ fun EditProductDialog(
                         editingName = it
                     },
                     textStyle = TextStyle(
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 17.sp
+                        fontFamily = Rubik,
+                        fontStyle = FontStyle.Normal,
+                        fontWeight = FontWeight.Light
                     ),
-                    label = { Text("Nazwa") },
+                    label = {
+                        Text(
+                            "Nazwa",
+                            style = TextStyle(
+                                fontFamily = Rubik,
+                                fontStyle = FontStyle.Normal,
+                                fontWeight = FontWeight.Light
+                            ),
+                        )
+                    },
                     isError = errorMessage != null
                 )
                 OutlinedTextField(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 16.dp, end = 16.dp, bottom = 4.dp, top = 4.dp),
+                        .padding(6.dp),
                     value = editingPrice,
                     onValueChange = { newValue ->
                         // Wyrażenie regularne pasujące do liczby z maksymalnie dwoma miejscami po przecinku
@@ -927,21 +968,40 @@ fun EditProductDialog(
                         onClick = { onDismiss() },
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text("Anuluj")
+                        Text(
+                            "Anuluj",
+                            style = TextStyle(
+                                fontFamily = Rubik,
+                                fontStyle = FontStyle.Normal,
+                                fontWeight = FontWeight.Light
+                            )
+                        )
                     }
                     Spacer(modifier = Modifier.width(80.dp))
-                    TextButton(
+                    Button(
                         onClick = {
                             if (editingName.isBlank() || editingPrice.isBlank()) {
                                 errorMessage = "Uzupełnij pola"
                             } else {
-                                onEditProduct(product.copy(name = editingName, price = editingPrice.toDouble()))
+                                onEditProduct(
+                                    product.copy(
+                                        name = editingName,
+                                        price = editingPrice.toDouble()
+                                    )
+                                )
                             }
                             onDismiss()
                         },
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text("Dodaj")
+                        Text(
+                            "Dodaj",
+                            style = TextStyle(
+                                fontFamily = Rubik,
+                                fontStyle = FontStyle.Normal,
+                                fontWeight = FontWeight.Light
+                            )
+                        )
                     }
                 }
             }

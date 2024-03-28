@@ -55,15 +55,22 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.example.scanner1000.data.Friend
+import com.example.scanner1000.data.Product
 import com.example.scanner1000.data.friend.FriendViewModel
+import com.example.scanner1000.data.product.ProductViewModel
 import com.example.scanner1000.ui.theme.Rubik
 import com.example.scanner1000.ui.theme.md_theme_light_secondary
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun MainScreen(friendViewModel: FriendViewModel, navController: NavController) {
+fun MainScreen(
+    friendViewModel: FriendViewModel,
+    productViewModel: ProductViewModel,
+    navController: NavController
+) {
 
     val state = friendViewModel.state.collectAsState().value
+    val filteredFriends = state.friends.filterNot { it.name == "Ja" }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally
@@ -78,12 +85,12 @@ fun MainScreen(friendViewModel: FriendViewModel, navController: NavController) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 25.dp, bottom = 10.dp, start = 10.dp, end = 10.dp),
-                    fontSize = 30.sp,
+                    fontSize = MaterialTheme.typography.headlineLarge.fontSize,
                     textAlign = TextAlign.Center,
                     style = TextStyle(
                         fontFamily = Rubik,
-                        fontStyle = FontStyle.Italic,
-                        fontWeight = FontWeight.Normal
+                        fontStyle = FontStyle.Normal,
+                        fontWeight = FontWeight.Bold
                     )
                 )
                 Spacer(modifier = Modifier.height(15.dp))
@@ -116,7 +123,7 @@ fun MainScreen(friendViewModel: FriendViewModel, navController: NavController) {
                             imageVector = Icons.Filled.PeopleAlt,
                             contentDescription = "znajomi",
                             label = "Moi znajomi",
-                            onClick = { /* Definiujesz akcję */ },
+                            onClick = { navController.navigate("friendsScreen") },
                             colors = CardDefaults.cardColors(
                                 containerColor = MaterialTheme.colorScheme.tertiaryContainer,
                             )
@@ -164,14 +171,34 @@ fun MainScreen(friendViewModel: FriendViewModel, navController: NavController) {
 
             }
         }
-        items(state.friends) { friend ->
-            FriendBalanceCard(
-                friend = friend,
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer
-                ),
-                friendViewModel
-            )
+
+        if (filteredFriends.isEmpty()) {
+            item {
+                Text(
+                    text = "Brak danych",
+                    modifier = Modifier
+                        .padding(5.dp)
+                        .fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                    style = TextStyle(
+                        fontFamily = Rubik,
+                        fontSize = 20.sp,
+                        fontStyle = FontStyle.Normal,
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+            }
+        } else {
+            items(filteredFriends) { friend ->
+                FriendBalanceCard(
+                    friend = friend,
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer
+                    ),
+                    friendViewModel,
+                    productViewModel
+                )
+            }
         }
 
     }
@@ -232,7 +259,10 @@ fun CardButton(
 
 @Composable
 fun FriendBalanceCard(
-    friend: Friend, colors: CardColors, friendViewModel: FriendViewModel
+    friend: Friend,
+    colors: CardColors,
+    friendViewModel: FriendViewModel,
+    productViewModel: ProductViewModel
 ) {
     val friends by friendViewModel.friends.collectAsState()
     var showBalanceDialog by remember { mutableStateOf(false) }
@@ -240,7 +270,20 @@ fun FriendBalanceCard(
         BalanceEditDialog(
             friend,
             onDismiss = { showBalanceDialog = false },
-            friendViewModel = friendViewModel
+            friendViewModel = friendViewModel,
+            productViewModel = productViewModel,
+            onSave = { name, price ->
+                productViewModel.addProduct(
+                    Product(
+                        name = name,
+                        price = price,
+                        categoryFk = 1,
+                        isSplit = false,
+                        isChecked = false,
+                        dateAdded = System.currentTimeMillis()
+                    )
+                )
+            }
         )
     }
 
@@ -263,12 +306,15 @@ fun FriendBalanceCard(
             ) {
                 if (friends.isEmpty()) {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("Brak znajomych", style = TextStyle(
-                            fontFamily = Rubik,
-                            fontStyle = FontStyle.Normal,
-                            fontWeight = FontWeight.Medium
-                        ),
-                            fontSize = MaterialTheme.typography.labelMedium.fontSize,)
+                        Text(
+                            "Brak znajomych",
+                            style = TextStyle(
+                                fontFamily = Rubik,
+                                fontStyle = FontStyle.Normal,
+                                fontWeight = FontWeight.Medium
+                            ),
+                            fontSize = MaterialTheme.typography.labelMedium.fontSize,
+                        )
                     }
                 } else {
                     Text(
@@ -305,10 +351,13 @@ fun BalanceEditDialog(
     friend: Friend,
     onDismiss: () -> Unit,
     friendViewModel: FriendViewModel,
+    productViewModel: ProductViewModel,
+    onSave: (String, Double) -> Unit
 ) {
     var isRefund by remember { mutableStateOf(true) }
-    var title by remember { mutableStateOf("") }
-    var amount by remember { mutableStateOf("") }
+    var productName by remember { mutableStateOf("") }
+    var productPrice by remember { mutableStateOf("") }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     Dialog(onDismissRequest = { onDismiss() }) {
         Surface(
@@ -355,28 +404,42 @@ fun BalanceEditDialog(
                 }
                 Spacer(modifier = Modifier.height(16.dp))
 
-
-                OutlinedTextField(
-                    value = title,
-                    onValueChange = { title = it },
-                    placeholder = { Text("Nazwa") }
-                )
+                if (!isRefund) {
+                    OutlinedTextField(
+                        value = productName,
+                        onValueChange = { productName = it },
+                        placeholder = { Text("Nazwa") },
+                        singleLine = true,
+                        isError = errorMessage != null
+                    )
+                }
+                if (errorMessage != null) {
+                    Text(
+                        text = errorMessage ?: "",
+                        color = Color.Red,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
                 Spacer(modifier = Modifier.height(16.dp))
                 OutlinedTextField(
-                    value = amount,
+                    value = productPrice,
                     onValueChange = { newValue ->
                         // Wyrażenie regularne pasujące do liczby z maksymalnie dwoma miejscami po przecinku
                         val pattern = Regex("^\\d*\\.?\\d{0,2}$")
 
                         // Sprawdzamy, czy nowa wartość pasuje do wzorca
                         if (newValue.matches(pattern) || newValue.isEmpty()) {
-                            amount = newValue
+                            productPrice = newValue
                         }
                     },
+                    singleLine = true,
+                    isError = errorMessage != null,
                     placeholder = { Text("Kwota") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
@@ -389,19 +452,36 @@ fun BalanceEditDialog(
                     }
                     TextButton(
                         onClick = {
-                            val amountValue = amount.toDoubleOrNull()
+                            val productNameCropped =
+                                productName.trim()
+
+                            val amountValue = productPrice.toDoubleOrNull()
                             if (amountValue != null) {
                                 if (isRefund) {
                                     friendViewModel.increaseBalanceForSpecificFriend(
                                         friend.id,
                                         amountValue
                                     )
+                                    friendViewModel.addRefund(friend.id, amountValue, "ZWROT")
+
                                 } else {
+                                    if (productNameCropped.isBlank() || productPrice.isBlank()) {
+                                        errorMessage = "Wypełnij wszystkie pola"
+                                    } else {
+                                        onSave(productNameCropped, amountValue)
+                                    }
                                     friendViewModel.decreaseBalanceForSpecificFriend(
                                         friend.id,
                                         amountValue
                                     )
+                                    friendViewModel.addExpense(
+                                        friend.id,
+                                        amountValue,
+                                        productNameCropped
+                                    )
                                 }
+                            } else {
+                                errorMessage = "Podaj kwotę"
                             }
                             onDismiss()
                         },

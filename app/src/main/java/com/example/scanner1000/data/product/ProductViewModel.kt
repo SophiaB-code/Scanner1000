@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.scanner1000.data.Product
 import com.example.scanner1000.data.ProductDao
+import com.example.scanner1000.data.ProductInfoForFriend
 import com.example.scanner1000.data.SharedProductDao
 import com.example.scanner1000.data.SharedProductInfo
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -120,6 +121,12 @@ class ProductViewModel(
         val newSharedProduct = SharedProductInfo(productId = productId, amountPerFriend = amountPerFriend, friendId = friendId)
         sharedProductDao.insertSharedProduct(newSharedProduct)
     }
+    fun getProductNameById(productId: Int): Flow<String> {
+        return dao.getProductNameById(productId)
+    }
+    fun getGroupedByFriendSharedProducts(friendId: Int): Flow<List<SharedProductInfo>> {
+        return sharedProductDao.getGroupedByFriendSharedProduct(friendId)
+    }
 
 
     val checkedProductIds: Flow<List<Int>> = dao.getCheckedProductsIds()
@@ -131,6 +138,16 @@ class ProductViewModel(
     fun deleteProduct(product: Product) = viewModelScope.launch {
         dao.deleteProduct(product)
     }
+    fun getProductInfoForFriend(friendId: Int): Flow<List<ProductInfoForFriend>> {
+        return sharedProductDao.getProductInfoForFriend(friendId)
+    }
+
+    suspend fun createProductAndReturnId(product: Product): Int {
+        dao.updateProduct(product)
+        // Tu zakładamy, że `insertProduct` zwraca ID nowo utworzonego produktu
+        return dao.getLastInsertedProductId()
+    }
+
 
 }
 
