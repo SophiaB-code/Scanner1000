@@ -82,6 +82,9 @@ interface ProductDao {
     @Query("SELECT id FROM product WHERE isChecked = 1")
     fun getCheckedProductsIds(): Flow<List<Int>>
 
+    @Query("SELECT * FROM product WHERE isChecked = 1")
+    fun getCheckedProduct(): Flow<List<Product>>
+
     @Query("UPDATE product SET isSplit = 1 WHERE isChecked = 1")
     suspend fun updateProductsAsSplit()
 

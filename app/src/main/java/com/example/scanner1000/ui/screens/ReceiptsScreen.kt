@@ -1,6 +1,7 @@
 package com.example.scanner1000.ui.screens
 
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -62,7 +63,14 @@ fun ReceiptsScreen(
     productViewModel: ProductViewModel,
     navController: NavController
 ) {
-
+    BackHandler {
+        // Nawigacja do ReceiptsScreen
+        navController.navigate("mainScreen") {
+            // Usuwa wszystkie instancje `receiptsScreen` z stosu i nawiguje do niego
+            popUpTo("mainScreen") { inclusive = true }
+            launchSingleTop = true // Uruchamia `ReceiptsScreen` jako pojedynczy top, unikając wielokrotnych instancji
+        }
+    }
     val state = categoryViewModel.state.collectAsState().value
     var showAddDialog by remember { mutableStateOf(false) }
 

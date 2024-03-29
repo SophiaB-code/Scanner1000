@@ -1,5 +1,6 @@
 package com.example.scanner1000.ui.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -59,7 +60,7 @@ fun MainScreen(
     productViewModel: ProductViewModel,
     navController: NavController
 ) {
-
+    BackHandler(enabled = true) { }
     val state = friendViewModel.state.collectAsState().value
     val filteredFriends = state.friends.filterNot { it.name == "Ja" }
 

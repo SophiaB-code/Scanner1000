@@ -17,7 +17,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.rounded.AddBox
 import androidx.compose.material.icons.rounded.Lightbulb
 import androidx.compose.material3.BottomAppBar
@@ -72,17 +71,7 @@ fun ChooseCategoryScreen(
                             .fillMaxSize()
                             .padding(8.dp)
                     ) {
-                        IconButton(
-                            onClick = { navController.navigate("mainScreen") }, modifier = Modifier
-                                .align(Alignment.CenterStart)
-                                .padding(start = 20.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.Home,
-                                contentDescription = "Powrót",
-                                modifier = Modifier.size(45.dp)
-                            )
-                        }
+
                         Button(
                             onClick = {
                                 if (selectedCategoryId != null) {

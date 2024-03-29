@@ -117,7 +117,6 @@ class MainActivity : ComponentActivity() {
                             ChoosePhotoScreen(
                                 navController = navController,
                                 textRecognizingViewModel = viewModelText,
-                                //productViewModel = viewModelPro,
                                 selectedCategoryId = backStackEntry.arguments?.getInt("categoryId")
                             )
                         }
@@ -132,7 +131,8 @@ class MainActivity : ComponentActivity() {
                                     categoryId = it.getInt("category.id"),
                                     viewModelFriend,
                                     viewModelPro,
-                                    viewModelCat
+                                    viewModelCat,
+                                    navController
 
 
                                 )

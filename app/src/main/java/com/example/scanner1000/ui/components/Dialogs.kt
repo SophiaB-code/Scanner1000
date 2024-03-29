@@ -482,7 +482,7 @@ fun EditProductDialog(
                         modifier = Modifier.weight(1f)
                     ) {
                         Text(
-                            "Dodaj",
+                            "Zapisz",
                             style = MaterialTheme.typography.bodyLarge
                         )
                     }
@@ -652,7 +652,12 @@ fun BalanceEditDialog(
                     OutlinedTextField(
                         value = productName,
                         onValueChange = { productName = it },
-                        placeholder = { Text("Nazwa") },
+                        label = {
+                            Text(
+                                "Nazwa",
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        },
                         singleLine = true,
                         isError = errorMessage != null,
                         textStyle = MaterialTheme.typography.bodyLarge,
@@ -680,7 +685,12 @@ fun BalanceEditDialog(
                     },
                     singleLine = true,
                     isError = errorMessage != null,
-                    placeholder = { Text("Kwota") },
+                    label = {
+                        Text(
+                            "Kwota",
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    },
                     textStyle = MaterialTheme.typography.bodyLarge,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
                 )

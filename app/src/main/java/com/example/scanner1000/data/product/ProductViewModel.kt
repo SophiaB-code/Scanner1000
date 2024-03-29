@@ -166,11 +166,23 @@ class ProductViewModel(
             friendDao.updateFriendBalance(sharedInfo.friendId, newBalance)
         }
     }
-    fun saveRecognizedProducts(selectedCategoryId: Int, recognizedProducts: List<Product>) = viewModelScope.launch {
-        recognizedProducts.forEach { tempProduct ->
-            val productWithCategory = tempProduct.copy(categoryFk = selectedCategoryId)
-            productDao.upsertProduct(productWithCategory)
+    fun getCheckedProducts(): Flow<List<Product>> {
+        return productDao.getCheckedProduct()
+    }
+
+    private val _checkedProducts = MutableStateFlow<List<Product>>(emptyList())
+    val checkedProducts: StateFlow<List<Product>> = _checkedProducts
+
+    fun toggleProductChecked(product: Product, isChecked: Boolean) = viewModelScope.launch {
+        val currentList = _checkedProducts.value.toMutableList()
+        if (isChecked) {
+            // Dodaj produkt do listy, jeśli został zaznaczony
+            currentList.add(product)
+        } else {
+            // Usuń produkt z listy, jeśli został odznaczony
+            currentList.remove(product)
         }
+        _checkedProducts.value = currentList
     }
 
 }

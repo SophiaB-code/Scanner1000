@@ -1,5 +1,7 @@
 package com.example.scanner1000.ui.screens
 
+import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -46,11 +48,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.example.scanner1000.data.Friend
 import com.example.scanner1000.data.Product
 import com.example.scanner1000.data.category.CategoryViewModel
@@ -69,13 +73,22 @@ fun ProductsWithCategoryScreen(
     categoryId: Int,
     friendViewModel: FriendViewModel,
     productViewModel: ProductViewModel,
-    categoryViewModel: CategoryViewModel
+    categoryViewModel: CategoryViewModel,
+    navController: NavController
 ) {
     // Przykład załadowania produktów dla danej kategorii
     LaunchedEffect(categoryId) {
         productViewModel.getProductsWithCategory(categoryId)
         delay(1000) // Opóźnienie o 1 sekundę (1000 milisekund)
         productViewModel.getProductsWithCategory(categoryId)
+    }
+    BackHandler {
+        // Nawigacja do ReceiptsScreen
+        navController.navigate("receiptsScreen") {
+            // Usuwa wszystkie instancje `receiptsScreen` z stosu i nawiguje do niego
+            popUpTo("receiptsScreen") { inclusive = true }
+            launchSingleTop = true // Uruchamia `ReceiptsScreen` jako pojedynczy top, unikając wielokrotnych instancji
+        }
     }
 
     val products = productViewModel.productsWithCategory.collectAsState().value
@@ -88,6 +101,7 @@ fun ProductsWithCategoryScreen(
     var showAddProductDialog by remember { mutableStateOf(false) }
     val categoryName =
         categoryViewModel.getCategoryTitleById(categoryId).collectAsState(initial = "")
+    val context = LocalContext.current
 
 
     filteredProducts = when {
@@ -110,13 +124,24 @@ fun ProductsWithCategoryScreen(
                     }
                     Button(
                         onClick = {
-                            showSplitDialog = true
+                            val selectedProducts = products.filter { it.isChecked }
+                            if (selectedProducts.isEmpty()) {
+                                // Wyświetlenie toastu, jeśli nie ma wybranych produktów
+                                Toast.makeText(context, "Nie wybrano produktów", Toast.LENGTH_SHORT).show()
+                            } else {
+                                // Logika podziału, jeśli produkty są wybrane
+                                showSplitDialog = true
+                            }
                         },
                         Modifier
                             .fillMaxSize()
                             .padding(5.dp)
                     ) {
-                        Text(text = "Podziel")
+                        Text(
+                            text = "PODZIEL",
+                            fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                            style = MaterialTheme.typography.titleMedium
+                        )
                     }
                 }
             }
@@ -297,72 +322,112 @@ fun ProductsWithCategoryScreen(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
                 )
             ) {
-                if (allSelected) {
-                    LazyColumn(
-                        contentPadding = PaddingValues(top = 12.dp, end = 12.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        items(filteredProducts) { product ->
-                            ProductButton(
-                                product = product,
-                                productViewModel,
-                                allSelected = true,
-                                splitSelected = false,
-                                notSplitSelected = false,
-                                onDeleteProduct = {
-                                    productViewModel.onEvent(
-                                        ProductEvent.DeleteProduct(
-                                            product
-                                        )
+                if (products.isEmpty()) {
+                    // Brak produktów
+                    Text(
+                        text = "Brak produktów",
+                        Modifier.padding(16.dp),
+                        textAlign = TextAlign.Center
+                    )
+                } else {
+                    if (allSelected) {
+                        LazyColumn(
+                            contentPadding = PaddingValues(top = 12.dp, end = 12.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            item {
+                                if (filteredProducts.isEmpty()) {
+                                    Text(
+                                        text = "Brak produktów ",
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        textAlign = TextAlign.Center,
+                                        modifier = Modifier.fillMaxWidth()
                                     )
                                 }
-                            )
+                            }
+                            items(filteredProducts) { product ->
+                                ProductButton(
+                                    product = product,
+                                    productViewModel,
+                                    allSelected = true,
+                                    splitSelected = false,
+                                    notSplitSelected = false,
+                                    onDeleteProduct = {
+                                        productViewModel.onEvent(
+                                            ProductEvent.DeleteProduct(
+                                                product
+                                            )
+                                        )
+                                    }
+                                )
+                            }
                         }
                     }
-                }
-                if (notSplitSelected) {
-                    LazyColumn(
-                        contentPadding = PaddingValues(top = 12.dp, end = 12.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        items(filteredProducts) { product ->
-                            ProductButton(
-                                product = product,
-                                productViewModel,
-                                allSelected = false,
-                                splitSelected = false,
-                                notSplitSelected = true,
-                                onDeleteProduct = {
-                                    productViewModel.onEvent(
-                                        ProductEvent.DeleteProduct(
-                                            product
-                                        )
+                    if (notSplitSelected) {
+
+                        LazyColumn(
+                            contentPadding = PaddingValues(top = 12.dp, end = 12.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            item {
+                                if (filteredProducts.isEmpty()) {
+                                    Text(
+                                        text = "Brak niepodzielonych produktów",
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        textAlign = TextAlign.Center,
+                                        modifier = Modifier.fillMaxWidth()
                                     )
                                 }
-                            )
+                            }
+                            items(filteredProducts) { product ->
+                                ProductButton(
+                                    product = product,
+                                    productViewModel,
+                                    allSelected = false,
+                                    splitSelected = false,
+                                    notSplitSelected = true,
+                                    onDeleteProduct = {
+                                        productViewModel.onEvent(
+                                            ProductEvent.DeleteProduct(
+                                                product
+                                            )
+                                        )
+                                    }
+                                )
+                            }
                         }
                     }
-                }
-                if (splitSelected) {
-                    LazyColumn(
-                        contentPadding = PaddingValues(top = 12.dp, end = 12.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        items(filteredProducts) { product ->
-                            ProductButton(
-                                product = product,
-                                productViewModel,
-                                allSelected = false,
-                                splitSelected = true,
-                                notSplitSelected = false,
-                                onDeleteProduct = {
-                                    productViewModel.onEvent(
-                                        ProductEvent.DeleteProduct(
-                                            product
-                                        )
+                    if (splitSelected) {
+                        LazyColumn(
+                            contentPadding = PaddingValues(top = 12.dp, end = 12.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            item {
+                                if (filteredProducts.isEmpty()) {
+                                    Text(
+                                        text = "Brak podzielonych produktów",
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        textAlign = TextAlign.Center,
+                                        modifier = Modifier.fillMaxWidth()
                                     )
                                 }
-                            )
+                            }
+                            items(filteredProducts) { product ->
+                                ProductButton(
+                                    product = product,
+                                    productViewModel,
+                                    allSelected = false,
+                                    splitSelected = true,
+                                    notSplitSelected = false,
+                                    onDeleteProduct = {
+                                        productViewModel.onEvent(
+                                            ProductEvent.DeleteProduct(
+                                                product
+                                            )
+                                        )
+                                    }
+                                )
+                            }
                         }
                     }
                 }
@@ -497,7 +562,6 @@ fun ProductButton(
         }
     }
 }
-
 
 
 @Composable

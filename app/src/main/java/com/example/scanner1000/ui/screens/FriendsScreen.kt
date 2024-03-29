@@ -411,19 +411,35 @@ fun FriendButton(
                             )
                         )
 
-
-                        Text(
-                            text = "+ ${refund.amount} zł",
-                            fontSize = MaterialTheme.typography.titleMedium.fontSize,
-                            color = Color.Black,
-                            modifier = Modifier
-                                .padding(end = 22.dp),
-                            style = TextStyle(
-                                fontFamily = Rubik,
-                                fontStyle = FontStyle.Normal,
-                                fontWeight = FontWeight.Light
+                        if (refund.description == "ZWROT") {
+                            Text(
+                                text = "+ ${refund.amount} zł",
+                                fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                                color = Color.Black,
+                                modifier = Modifier
+                                    .padding(end = 22.dp),
+                                style = TextStyle(
+                                    fontFamily = Rubik,
+                                    fontStyle = FontStyle.Normal,
+                                    fontWeight = FontWeight.Light
+                                )
                             )
-                        )
+                        } else {
+                            Text(
+                                text = "- ${refund.amount} zł",
+                                fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                                color = Color.Black,
+                                modifier = Modifier
+                                    .padding(end = 22.dp),
+                                style = TextStyle(
+                                    fontFamily = Rubik,
+                                    fontStyle = FontStyle.Normal,
+                                    fontWeight = FontWeight.Light
+                                )
+                            )
+
+                        }
+
 
                     }
 
@@ -444,7 +460,7 @@ fun DeleteAlertDialog(
         Card(
             modifier = Modifier
                 .width(300.dp)
-                .height(200.dp),
+                .height(150.dp),
             //.padding(16.dp),
             shape = RoundedCornerShape(16.dp),
         ) {
