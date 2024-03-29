@@ -52,6 +52,7 @@ import com.example.scanner1000.data.Friend
 import com.example.scanner1000.data.friend.FriendEvent
 import com.example.scanner1000.data.friend.FriendViewModel
 import com.example.scanner1000.data.product.ProductViewModel
+import com.example.scanner1000.ui.components.AddFriendDialog
 import com.example.scanner1000.ui.theme.Rubik
 import com.example.scanner1000.ui.theme.md_theme_light_onPrimaryContainer
 import com.example.scanner1000.ui.theme.md_theme_light_tertiaryContainer

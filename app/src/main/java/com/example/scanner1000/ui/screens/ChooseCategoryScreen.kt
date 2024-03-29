@@ -27,11 +27,8 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -40,18 +37,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.example.scanner1000.data.Category
 import com.example.scanner1000.data.category.CategoryEvent
 import com.example.scanner1000.data.category.CategoryViewModel
+import com.example.scanner1000.ui.components.AddCategoryDialog
 import com.example.scanner1000.ui.theme.Rubik
 import com.example.scanner1000.ui.theme.md_theme_light_onPrimaryContainer
 import com.example.scanner1000.ui.theme.md_theme_light_primaryContainer
@@ -232,118 +227,6 @@ fun ChooseCategoryScreen(
                                 }
                             }
                         }
-                    }
-
-                }
-
-            }
-
-        }
-
-    }
-}
-
-@Composable
-fun AddCategoryDialog(
-    onDismiss: () -> Unit,
-    categoryViewModel: CategoryViewModel,
-    onSave: (String) -> Unit
-) {
-    Dialog(onDismissRequest = { onDismiss() }) {
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            shape = MaterialTheme.shapes.medium,
-            color = MaterialTheme.colorScheme.surface
-        ) {
-            Column(
-                modifier = Modifier.padding(12.dp)
-            )
-            {
-                val state = categoryViewModel.state.collectAsState().value
-                var errorMessage by remember { mutableStateOf<String?>(null) }
-
-                Text(
-                    text = "Dodaj kategorię",
-                    fontSize = MaterialTheme.typography.bodyLarge.fontSize,
-                    style = TextStyle(
-                        fontFamily = Rubik,
-                        fontStyle = FontStyle.Normal,
-                        fontWeight = FontWeight.Medium
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(5.dp)
-                )
-                Spacer(modifier = Modifier.height(10.dp))
-                OutlinedTextField(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 16.dp, end = 16.dp, bottom = 4.dp, top = 4.dp),
-                    value = state.title.value,
-                    onValueChange = {
-                        state.title.value = it
-                    },
-                    textStyle = TextStyle(
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 17.sp
-                    ),
-                    label = {
-                        Text(
-                            "Nazwa",
-                            style = TextStyle(
-                                fontFamily = Rubik,
-                                fontStyle = FontStyle.Normal,
-                                fontWeight = FontWeight.Light
-                            ),
-                        )
-                    },
-                    singleLine = true,
-                    isError = errorMessage != null
-                )
-                if (errorMessage != null) {
-                    Text(
-                        text = errorMessage ?: "",
-                        color = Color.Red,
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(start = 16.dp)
-                    )
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-                Row {
-                    TextButton(
-                        onClick = { onDismiss() },
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("Anuluj")
-                    }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    TextButton(
-                        onClick = {
-                            val categoryName =
-                                state.title.value.trim() // Usuwamy białe znaki z początku i końca
-                            if (categoryName.isBlank()) {
-                                errorMessage = "Wpisz nazwę"
-                            } else {
-                                // Sprawdzamy, czy lista kategorii zawiera już kategorię o tej samej nazwie
-                                val categoryExists = categoryViewModel.state.value.categories.any {
-                                    it.title.equals(
-                                        categoryName,
-                                        ignoreCase = true
-                                    )
-                                }
-                                if (categoryExists) {
-                                    errorMessage = "Kategoria o tej nazwie już istnieje"
-                                } else {
-                                    onSave(categoryName)
-                                    onDismiss()
-                                }
-                            }
-                        },
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("Zapisz")
                     }
                 }
             }

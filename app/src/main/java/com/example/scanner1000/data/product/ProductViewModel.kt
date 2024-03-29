@@ -148,6 +148,26 @@ class ProductViewModel(
         }
     }
 
+    fun undoProductSplit(product: Product) = viewModelScope.launch {
+        // Zmiana statusu isSplit na false
+        val updatedProduct = product.copy(isSplit = false)
+        productDao.updateProduct(updatedProduct)
+
+        // Pobranie wszystkich powiązanych informacji o podziale produktu
+        val sharedInfoList = sharedProductDao.getSharedProductsByProductId(product.id).first()
+
+        // Usunięcie powiązanych informacji o podziale produktu
+        sharedProductDao.deleteSharedProductsByProductId(product.id)
+
+        // Aktualizacja bilansu przyjaciół na podstawie usuniętych informacji o podziale produktu
+        sharedInfoList.forEach { sharedInfo ->
+            val currentBalance = friendDao.getFriendBalanceById(sharedInfo.friendId)
+            val newBalance = currentBalance + sharedInfo.amountPerFriend
+            friendDao.updateFriendBalance(sharedInfo.friendId, newBalance)
+        }
+    }
+
+
 }
 
 

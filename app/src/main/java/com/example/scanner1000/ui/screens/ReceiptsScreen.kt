@@ -52,6 +52,7 @@ import com.example.scanner1000.data.Category
 import com.example.scanner1000.data.category.CategoryEvent
 import com.example.scanner1000.data.category.CategoryViewModel
 import com.example.scanner1000.data.product.ProductViewModel
+import com.example.scanner1000.ui.components.AddCategoryDialog
 import com.example.scanner1000.ui.theme.Rubik
 import com.example.scanner1000.ui.theme.md_theme_light_secondaryContainer
 

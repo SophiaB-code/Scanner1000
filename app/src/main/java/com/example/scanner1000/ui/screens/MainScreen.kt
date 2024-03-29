@@ -13,27 +13,20 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PeopleAlt
 import androidx.compose.material.icons.filled.PostAdd
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.rounded.AttachMoney
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -48,18 +41,16 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.example.scanner1000.data.Friend
 import com.example.scanner1000.data.Product
 import com.example.scanner1000.data.friend.FriendViewModel
 import com.example.scanner1000.data.product.ProductViewModel
+import com.example.scanner1000.ui.components.BalanceEditDialog
 import com.example.scanner1000.ui.theme.Rubik
-import com.example.scanner1000.ui.theme.md_theme_light_secondary
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -271,7 +262,6 @@ fun FriendBalanceCard(
             friend,
             onDismiss = { showBalanceDialog = false },
             friendViewModel = friendViewModel,
-            productViewModel = productViewModel,
             onSave = { name, price ->
                 productViewModel.addProduct(
                     Product(
@@ -346,155 +336,5 @@ fun FriendBalanceCard(
     }
 }
 
-@Composable
-fun BalanceEditDialog(
-    friend: Friend,
-    onDismiss: () -> Unit,
-    friendViewModel: FriendViewModel,
-    productViewModel: ProductViewModel,
-    onSave: (String, Double) -> Unit
-) {
-    var isRefund by remember { mutableStateOf(true) }
-    var productName by remember { mutableStateOf("") }
-    var productPrice by remember { mutableStateOf("") }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
-
-    Dialog(onDismissRequest = { onDismiss() }) {
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            shape = MaterialTheme.shapes.medium,
-            color = MaterialTheme.colorScheme.surface
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = friend.name,
-                        fontSize = MaterialTheme.typography.titleLarge.fontSize,
-
-                        )
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Button(
-                        onClick = { isRefund = true },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = if (isRefund) MaterialTheme.colorScheme.secondary
-                            else MaterialTheme.colorScheme.secondaryContainer
-                        ),
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("Zwrot")
-                    }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Button(
-                        onClick = { isRefund = false },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = if (!isRefund) MaterialTheme.colorScheme.secondary
-                            else MaterialTheme.colorScheme.secondaryContainer
-                        ),
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("Wydatek")
-                    }
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-
-                if (!isRefund) {
-                    OutlinedTextField(
-                        value = productName,
-                        onValueChange = { productName = it },
-                        placeholder = { Text("Nazwa") },
-                        singleLine = true,
-                        isError = errorMessage != null
-                    )
-                }
-                if (errorMessage != null) {
-                    Text(
-                        text = errorMessage ?: "",
-                        color = Color.Red,
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-                OutlinedTextField(
-                    value = productPrice,
-                    onValueChange = { newValue ->
-                        // Wyrażenie regularne pasujące do liczby z maksymalnie dwoma miejscami po przecinku
-                        val pattern = Regex("^\\d*\\.?\\d{0,2}$")
-
-                        // Sprawdzamy, czy nowa wartość pasuje do wzorca
-                        if (newValue.matches(pattern) || newValue.isEmpty()) {
-                            productPrice = newValue
-                        }
-                    },
-                    singleLine = true,
-                    isError = errorMessage != null,
-                    placeholder = { Text("Kwota") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    TextButton(
-                        onClick = { onDismiss() },
-                        colors = ButtonDefaults.buttonColors(md_theme_light_secondary)
-                    ) {
-                        Text("Anuluj")
-                    }
-                    TextButton(
-                        onClick = {
-                            val productNameCropped =
-                                productName.trim()
-
-                            val amountValue = productPrice.toDoubleOrNull()
-                            if (amountValue != null) {
-                                if (isRefund) {
-                                    friendViewModel.increaseBalanceForSpecificFriend(
-                                        friend.id,
-                                        amountValue
-                                    )
-                                    friendViewModel.addRefund(friend.id, amountValue, "ZWROT")
-
-                                } else {
-                                    if (productNameCropped.isBlank() || productPrice.isBlank()) {
-                                        errorMessage = "Wypełnij wszystkie pola"
-                                    } else {
-                                        onSave(productNameCropped, amountValue)
-                                    }
-                                    friendViewModel.decreaseBalanceForSpecificFriend(
-                                        friend.id,
-                                        amountValue
-                                    )
-                                    friendViewModel.addExpense(
-                                        friend.id,
-                                        amountValue,
-                                        productNameCropped
-                                    )
-                                }
-                            } else {
-                                errorMessage = "Podaj kwotę"
-                            }
-                            onDismiss()
-                        },
-                        colors = ButtonDefaults.buttonColors(md_theme_light_secondary)
-                    )
-                    {
-                        Text("Zatwierdź")
-                    }
-                }
-
-            }
-        }
-    }
-}
 
 
