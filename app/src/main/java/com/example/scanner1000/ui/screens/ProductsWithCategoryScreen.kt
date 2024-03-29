@@ -61,6 +61,7 @@ import com.example.scanner1000.ui.components.AddProductDialog
 import com.example.scanner1000.ui.components.EditProductDialog
 import com.example.scanner1000.ui.components.SplitDialog
 import com.example.scanner1000.ui.theme.Rubik
+import kotlinx.coroutines.delay
 
 
 @Composable
@@ -72,6 +73,8 @@ fun ProductsWithCategoryScreen(
 ) {
     // Przykład załadowania produktów dla danej kategorii
     LaunchedEffect(categoryId) {
+        productViewModel.getProductsWithCategory(categoryId)
+        delay(1000) // Opóźnienie o 1 sekundę (1000 milisekund)
         productViewModel.getProductsWithCategory(categoryId)
     }
 
@@ -174,7 +177,6 @@ fun ProductsWithCategoryScreen(
                 if (showAddProductDialog) {
                     AddProductDialog(
                         onDismiss = { showAddProductDialog = false },
-                        productViewModel = productViewModel,
                         onSave = { name, price ->
                             productViewModel.addProduct(
                                 Product(
@@ -401,7 +403,6 @@ fun ProductButton(
     if (showProductEditDialog) {
         EditProductDialog(
             onDismiss = { showProductEditDialog = false },
-            productViewModel = productViewModel,
             onEditProduct = { updatedProduct ->
                 productViewModel.onEvent(ProductEvent.EditProduct(updatedProduct))
             },

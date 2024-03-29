@@ -110,7 +110,9 @@ fun ReceiptsScreen(
             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
             verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
-            items(state.categories) { category ->
+            val filteredCategories = state.categories.filterNot { it.id == 1 }
+
+            items(filteredCategories) { category ->
                 CategoryButton(
                     viewModel = productViewModel,
                     contentDescription = "Kategoria",

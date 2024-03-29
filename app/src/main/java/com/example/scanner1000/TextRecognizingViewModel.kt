@@ -3,13 +3,10 @@ package com.example.scanner1000
 import android.app.Application
 import android.graphics.Bitmap
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.scanner1000.data.AppDatabase
 import com.example.scanner1000.data.Product
@@ -21,42 +18,17 @@ import kotlinx.coroutines.launch
 
 class TextRecognizingViewModel (application: Application) : ViewModel() {
     private val productDao: ProductDao = AppDatabase.getDatabase(application).productDao()
-    private val allProducts: LiveData<List<Product>> = productDao.getProductsOrderedByName().asLiveData()
     var bitmap: MutableState<Bitmap?> = mutableStateOf(null)
     private var recognizedText by mutableStateOf("")
 
-    private var _tempRecognizedProducts = mutableStateOf<List<Product>>(listOf())
-    val tempRecognizedProducts: State<List<Product>> = _tempRecognizedProducts
 
-    fun saveRecognizedProducts(selectedCategoryId: Int) = viewModelScope.launch {
-        _tempRecognizedProducts.value.forEach { tempProduct ->
-            val productWithCategory = tempProduct.copy(categoryFk = selectedCategoryId)
-            productDao.upsertProduct(productWithCategory)
-        }
-        _tempRecognizedProducts.value = listOf()
-    }
-
-    fun addProduct(product: Product) = viewModelScope.launch {
-      productDao.upsertProduct(product)
-    }
-
-    fun deleteProduct(product: Product) = viewModelScope.launch {
-        productDao.deleteProduct(product)
-    }
-
-    fun getProductsOrderedByName(): LiveData<List<Product>> = allProducts
-
-    fun updateBitmap(newBitmap: Bitmap) {
+    fun updateBitmapAndRecognizeText(newBitmap: Bitmap, selectedCategoryId: Int) {
         bitmap.value = newBitmap
-        recognizeTextFromImage(newBitmap)
-    }
-    fun clearData() {
-        // Resetuj wszystkie interesujące Cię dane
-        bitmap.value = null
-        _tempRecognizedProducts.value = listOf()
+        recognizeTextFromImage(newBitmap, selectedCategoryId) // Teraz przekazujemy ID kategorii
     }
 
-    private fun recognizeTextFromImage(bitmap: Bitmap) {
+
+    private fun recognizeTextFromImage(bitmap: Bitmap,  selectedCategoryId: Int) {
         val image = InputImage.fromBitmap(bitmap, 0)
         val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
 
@@ -85,20 +57,17 @@ class TextRecognizingViewModel (application: Application) : ViewModel() {
                         name = array[index],
                         price = price,
                         dateAdded = System.currentTimeMillis(),
-                        categoryFk = 0,
+                        categoryFk = selectedCategoryId,
                         isSplit = false
-
-
                     )
-                    products.add(product)
+                    viewModelScope.launch {
+                        productDao.upsertProduct(product) // Zapisujemy każdy produkt bezpośrednio do bazy danych
+                    }
                 }
-                _tempRecognizedProducts.value = products
 
-
-                recognizedText = products.joinToString(separator = "\n") { product ->
-                    "${product.name} | ${product.price}"
-
-                }
+                recognizedText = array.zip(prices) { name, price ->
+                    "$name | $price"
+                }.joinToString(separator = "\n")
             }
             .addOnFailureListener { e ->
                 recognizedText = "Nie udało się rozpoznać tekstu: ${e.localizedMessage}"

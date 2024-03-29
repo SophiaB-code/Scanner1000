@@ -31,13 +31,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.example.scanner1000.data.Friend
 import com.example.scanner1000.data.Product
@@ -46,7 +42,6 @@ import com.example.scanner1000.data.friend.FriendEvent
 import com.example.scanner1000.data.friend.FriendViewModel
 import com.example.scanner1000.data.product.ProductViewModel
 import com.example.scanner1000.ui.screens.FriendCheckbox
-import com.example.scanner1000.ui.theme.Rubik
 import com.example.scanner1000.ui.theme.md_theme_light_secondary
 import java.math.RoundingMode
 
@@ -86,10 +81,12 @@ fun SplitDialog(
             {
                 Text(
                     text = "Podziel rachunek",
-                    style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(5.dp)
+                        .padding(5.dp),
+                    fontSize = MaterialTheme.typography.titleLarge.fontSize,
+                    style = MaterialTheme.typography.titleMedium,
+                    textAlign = TextAlign.Center
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 LazyColumn {
@@ -116,7 +113,7 @@ fun SplitDialog(
                     TextButton(onClick = { showAddDialog = true }) {
                         Icon(imageVector = Icons.Filled.Add, contentDescription = "")
                         Spacer(modifier = Modifier.width(3.dp))
-                        Text(text = "dodaj znajomego")
+                        Text(text = "dodaj znajomego", style = MaterialTheme.typography.bodyLarge)
                     }
                 }
 
@@ -125,10 +122,10 @@ fun SplitDialog(
                         onClick = { onDismiss() },
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text("Anuluj")
+                        Text("Anuluj", style = MaterialTheme.typography.bodyLarge)
                     }
                     Spacer(modifier = Modifier.width(8.dp))
-                    TextButton(
+                    Button(
                         onClick = {
 
                             if (checkedFriendsCount > 0 && sumOfCheckedProducts != null) {
@@ -165,7 +162,7 @@ fun SplitDialog(
                         },
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text("Zapisz")
+                        Text("Zapisz",  style = MaterialTheme.typography.bodyLarge,)
                     }
                 }
             }
@@ -196,7 +193,9 @@ fun AddFriendDialog(
 
                 Text(
                     text = "Dodaj znajomego",
-                    style = MaterialTheme.typography.bodyLarge,
+                    fontSize = MaterialTheme.typography.titleLarge.fontSize,
+                    style = MaterialTheme.typography.titleMedium,
+                    textAlign = TextAlign.Center,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(5.dp)
@@ -210,11 +209,8 @@ fun AddFriendDialog(
                     onValueChange = {
                         state.name.value = it
                     },
-                    textStyle = TextStyle(
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 17.sp
-                    ),
-                    label = { Text("Imię") },
+                    textStyle = MaterialTheme.typography.bodyLarge,
+                    label = { Text("Imię", style = MaterialTheme.typography.bodyLarge ) },
                     isError = errorMessage != null
                 )
                 if (errorMessage != null) {
@@ -231,10 +227,10 @@ fun AddFriendDialog(
                         onClick = { onDismiss() },
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text("Anuluj")
+                        Text("Anuluj", style = MaterialTheme.typography.bodyLarge)
                     }
                     Spacer(modifier = Modifier.width(80.dp))
-                    TextButton(
+                    Button(
                         onClick = {
                             if (state.name.value.isBlank()) {
                                 errorMessage = "Pole imię nie może być puste"
@@ -245,7 +241,7 @@ fun AddFriendDialog(
                         },
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text("Dodaj")
+                        Text("Dodaj", style = MaterialTheme.typography.bodyLarge)
                     }
                 }
             }
@@ -256,7 +252,6 @@ fun AddFriendDialog(
 @Composable
 fun AddProductDialog(
     onDismiss: () -> Unit,
-    productViewModel: ProductViewModel,
     onSave: (String, Double) -> Unit
 ) {
     Dialog(onDismissRequest = { onDismiss() }) {
@@ -272,20 +267,13 @@ fun AddProductDialog(
             )
             {
                 var productName by remember { mutableStateOf("") }
-                // Stan dla ceny produktu
                 var productPrice by remember { mutableStateOf("") }
-
-                val state = productViewModel.state.collectAsState().value
                 var errorMessage by remember { mutableStateOf<String?>(null) }
 
                 Text(
                     text = "Dodaj produkt",
-                    fontSize = MaterialTheme.typography.bodyLarge.fontSize,
-                    style = TextStyle(
-                        fontFamily = Rubik,
-                        fontStyle = FontStyle.Normal,
-                        fontWeight = FontWeight.Medium
-                    ),
+                    fontSize = MaterialTheme.typography.titleLarge.fontSize,
+                    style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(5.dp),
@@ -300,21 +288,11 @@ fun AddProductDialog(
                     onValueChange = {
                         productName = it
                     },
-                    textStyle =
-                    TextStyle(
-                        fontFamily = Rubik,
-                        fontStyle = FontStyle.Normal,
-                        fontWeight = FontWeight.Light
-
-                    ),
+                    textStyle = MaterialTheme.typography.bodyLarge,
                     label = {
                         Text(
                             "Nazwa",
-                            style = TextStyle(
-                                fontFamily = Rubik,
-                                fontStyle = FontStyle.Normal,
-                                fontWeight = FontWeight.Light
-                            ),
+                            style = MaterialTheme.typography.bodyLarge,
                         )
                     },
                     singleLine = true,
@@ -333,24 +311,12 @@ fun AddProductDialog(
                         if (newValue.matches(pattern) || newValue.isEmpty()) {
                             productPrice = newValue
                         }
-
                     },
-                    textStyle =
-                    TextStyle(
-                        fontFamily = Rubik,
-                        fontStyle = FontStyle.Normal,
-                        fontWeight = FontWeight.Light
-
-                    ),
-
+                    textStyle = MaterialTheme.typography.bodyLarge,
                     label = {
                         Text(
                             "Cena",
-                            style = TextStyle(
-                                fontFamily = Rubik,
-                                fontStyle = FontStyle.Normal,
-                                fontWeight = FontWeight.Light
-                            ),
+                            style = MaterialTheme.typography.bodyLarge,
                         )
                     },
                     singleLine = true,
@@ -374,15 +340,11 @@ fun AddProductDialog(
                     ) {
                         Text(
                             "Anuluj",
-                            style = TextStyle(
-                                fontFamily = Rubik,
-                                fontStyle = FontStyle.Normal,
-                                fontWeight = FontWeight.Light
-                            ),
+                            style = MaterialTheme.typography.bodyLarge,
                         )
                     }
                     Spacer(modifier = Modifier.width(8.dp))
-                    TextButton(
+                    Button(
                         onClick = {
                             val productNameCropped =
                                 productName.trim() // Usuwamy białe znaki z początku i końca
@@ -392,20 +354,14 @@ fun AddProductDialog(
                                 errorMessage = "Wypełnij wszystkie pola"
                             } else {
                                 onSave(productName, productPrice.toDouble())
-
                                 onDismiss()
                             }
-
                         },
                         modifier = Modifier.weight(1f)
                     ) {
                         Text(
                             "Zapisz",
-                            style = TextStyle(
-                                fontFamily = Rubik,
-                                fontStyle = FontStyle.Normal,
-                                fontWeight = FontWeight.Light
-                            ),
+                            style = MaterialTheme.typography.bodyLarge,
                         )
                     }
                 }
@@ -417,7 +373,6 @@ fun AddProductDialog(
 @Composable
 fun EditProductDialog(
     onDismiss: () -> Unit,
-    productViewModel: ProductViewModel,
     onEditProduct: (Product) -> Unit,
     product: Product
 ) {
@@ -436,21 +391,16 @@ fun EditProductDialog(
                 modifier = Modifier.padding(12.dp)
             )
             {
-                val state = productViewModel.state.collectAsState().value
                 var errorMessage by remember { mutableStateOf<String?>(null) }
 
                 Text(
                     text = "Edytuj produkt",
-                    fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                    fontSize = MaterialTheme.typography.titleLarge.fontSize,
+                    style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(5.dp),
-                    textAlign = TextAlign.Center,
-                    style = TextStyle(
-                        fontFamily = Rubik,
-                        fontStyle = FontStyle.Normal,
-                        fontWeight = FontWeight.Normal
-                    ),
+                    textAlign = TextAlign.Center
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 OutlinedTextField(
@@ -461,19 +411,11 @@ fun EditProductDialog(
                     onValueChange = {
                         editingName = it
                     },
-                    textStyle = TextStyle(
-                        fontFamily = Rubik,
-                        fontStyle = FontStyle.Normal,
-                        fontWeight = FontWeight.Light
-                    ),
+                    textStyle = MaterialTheme.typography.bodyLarge,
                     label = {
                         Text(
                             "Nazwa",
-                            style = TextStyle(
-                                fontFamily = Rubik,
-                                fontStyle = FontStyle.Normal,
-                                fontWeight = FontWeight.Light
-                            ),
+                            style = MaterialTheme.typography.bodyLarge
                         )
                     },
                     isError = errorMessage != null
@@ -492,18 +434,11 @@ fun EditProductDialog(
                             editingPrice = newValue
                         }
                     },
-                    textStyle = TextStyle(
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 17.sp
-                    ),
+                    textStyle = MaterialTheme.typography.bodyLarge,
                     label = {
                         Text(
                             "Cena",
-                            style = TextStyle(
-                                fontFamily = Rubik,
-                                fontStyle = FontStyle.Normal,
-                                fontWeight = FontWeight.Light
-                            ),
+                            style = MaterialTheme.typography.bodyLarge
                         )
                     },
                     singleLine = true,
@@ -526,11 +461,7 @@ fun EditProductDialog(
                     ) {
                         Text(
                             "Anuluj",
-                            style = TextStyle(
-                                fontFamily = Rubik,
-                                fontStyle = FontStyle.Normal,
-                                fontWeight = FontWeight.Light
-                            )
+                            style = MaterialTheme.typography.bodyLarge
                         )
                     }
                     Spacer(modifier = Modifier.width(80.dp))
@@ -552,11 +483,7 @@ fun EditProductDialog(
                     ) {
                         Text(
                             "Dodaj",
-                            style = TextStyle(
-                                fontFamily = Rubik,
-                                fontStyle = FontStyle.Normal,
-                                fontWeight = FontWeight.Light
-                            )
+                            style = MaterialTheme.typography.bodyLarge
                         )
                     }
                 }
@@ -588,15 +515,12 @@ fun AddCategoryDialog(
 
                 Text(
                     text = "Dodaj kategorię",
-                    fontSize = MaterialTheme.typography.bodyLarge.fontSize,
-                    style = TextStyle(
-                        fontFamily = Rubik,
-                        fontStyle = FontStyle.Normal,
-                        fontWeight = FontWeight.Medium
-                    ),
+                    fontSize = MaterialTheme.typography.titleLarge.fontSize,
+                    style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(5.dp)
+                        .padding(5.dp),
+                    textAlign = TextAlign.Center
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 OutlinedTextField(
@@ -607,18 +531,11 @@ fun AddCategoryDialog(
                     onValueChange = {
                         state.title.value = it
                     },
-                    textStyle = TextStyle(
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 17.sp
-                    ),
+                    textStyle = MaterialTheme.typography.bodyLarge,
                     label = {
                         Text(
                             "Nazwa",
-                            style = TextStyle(
-                                fontFamily = Rubik,
-                                fontStyle = FontStyle.Normal,
-                                fontWeight = FontWeight.Light
-                            ),
+                            style = MaterialTheme.typography.bodyLarge
                         )
                     },
                     singleLine = true,
@@ -638,10 +555,10 @@ fun AddCategoryDialog(
                         onClick = { onDismiss() },
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text("Anuluj")
+                        Text("Anuluj", style = MaterialTheme.typography.bodyLarge)
                     }
                     Spacer(modifier = Modifier.width(8.dp))
-                    TextButton(
+                    Button(
                         onClick = {
                             val categoryName =
                                 state.title.value.trim() // Usuwamy białe znaki z początku i końca
@@ -665,7 +582,7 @@ fun AddCategoryDialog(
                         },
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text("Zapisz")
+                        Text("Zapisz", style = MaterialTheme.typography.bodyLarge)
                     }
                 }
             }
@@ -699,8 +616,9 @@ fun BalanceEditDialog(
                     Text(
                         text = friend.name,
                         fontSize = MaterialTheme.typography.titleLarge.fontSize,
+                        style = MaterialTheme.typography.titleMedium
 
-                        )
+                    )
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 Row(
@@ -714,7 +632,7 @@ fun BalanceEditDialog(
                         ),
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text("Zwrot")
+                        Text("Zwrot",  style = MaterialTheme.typography.titleMedium)
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     Button(
@@ -725,7 +643,7 @@ fun BalanceEditDialog(
                         ),
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text("Wydatek")
+                        Text("Wydatek",  style = MaterialTheme.typography.titleMedium)
                     }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
@@ -736,7 +654,8 @@ fun BalanceEditDialog(
                         onValueChange = { productName = it },
                         placeholder = { Text("Nazwa") },
                         singleLine = true,
-                        isError = errorMessage != null
+                        isError = errorMessage != null,
+                        textStyle = MaterialTheme.typography.bodyLarge,
                     )
                 }
                 if (errorMessage != null) {
@@ -762,6 +681,7 @@ fun BalanceEditDialog(
                     singleLine = true,
                     isError = errorMessage != null,
                     placeholder = { Text("Kwota") },
+                    textStyle = MaterialTheme.typography.bodyLarge,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
@@ -771,12 +691,11 @@ fun BalanceEditDialog(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     TextButton(
-                        onClick = { onDismiss() },
-                        colors = ButtonDefaults.buttonColors(md_theme_light_secondary)
+                        onClick = { onDismiss() }
                     ) {
-                        Text("Anuluj")
+                        Text("Anuluj", style = MaterialTheme.typography.bodyLarge, color = md_theme_light_secondary)
                     }
-                    TextButton(
+                    Button(
                         onClick = {
                             val productNameCropped =
                                 productName.trim()
@@ -814,7 +733,7 @@ fun BalanceEditDialog(
                         colors = ButtonDefaults.buttonColors(md_theme_light_secondary)
                     )
                     {
-                        Text("Zatwierdź")
+                        Text("Zapisz", style = MaterialTheme.typography.bodyLarge)
                     }
                 }
 

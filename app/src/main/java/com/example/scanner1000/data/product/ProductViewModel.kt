@@ -166,7 +166,12 @@ class ProductViewModel(
             friendDao.updateFriendBalance(sharedInfo.friendId, newBalance)
         }
     }
-
+    fun saveRecognizedProducts(selectedCategoryId: Int, recognizedProducts: List<Product>) = viewModelScope.launch {
+        recognizedProducts.forEach { tempProduct ->
+            val productWithCategory = tempProduct.copy(categoryFk = selectedCategoryId)
+            productDao.upsertProduct(productWithCategory)
+        }
+    }
 
 }
 
