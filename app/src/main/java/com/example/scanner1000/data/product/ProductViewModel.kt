@@ -21,6 +21,8 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import java.math.RoundingMode
 
 
 class ProductViewModel(
@@ -30,9 +32,22 @@ class ProductViewModel(
 ) : ViewModel() {
     private val isSortedByName = MutableStateFlow(true)
     val sumOfCheckedProducts: Flow<Double?> = productDao.getSumOfCheckedProducts()
+    val priceOfCheckedProduct: Flow<Double?> = productDao.getPriceOfCheckedProduct()
+    val checkedProductIds: Flow<List<Int>> = productDao.getCheckedProductsIds()
+
+    private val checkedFriendsCount: Flow<Int> = friendDao.getCheckedFriendsCount() // Załóżmy, że masz taką metodę
+
+    val amountPerFriendPerProduct: Flow<Double?> = combine(priceOfCheckedProduct, checkedFriendsCount) { price, count ->
+        if (count > 0 && price != null) {
+            BigDecimal(price / count).setScale(2, RoundingMode.HALF_EVEN).toDouble()
+        } else {
+            null
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), null)
 
 
-    @OptIn(ExperimentalCoroutinesApi::class)
+
+        @OptIn(ExperimentalCoroutinesApi::class)
     var products =
         isSortedByName.flatMapLatest {
             productDao.getProductsOrderedByName()
@@ -112,17 +127,17 @@ class ProductViewModel(
             productDao.resetProductsCheckedStatus()
         }
     }
-    fun addSharedProductInfo(productId: Int, friendId: Int, amountPerFriend: Double) =
+    fun addSharedProductInfo(productId: Int, friendId: Int, amountPerFriendPerProduct: Double) =
         viewModelScope.launch {
             val newSharedProduct = SharedProductInfo(
                 productId = productId,
-                amountPerFriend = amountPerFriend,
+                amountPerFriend = amountPerFriendPerProduct,
                 friendId = friendId
             )
             sharedProductDao.insertSharedProduct(newSharedProduct)
         }
 
-    val checkedProductIds: Flow<List<Int>> = productDao.getCheckedProductsIds()
+
 
     fun addProduct(product: Product) = viewModelScope.launch {
         productDao.upsertProduct(product)

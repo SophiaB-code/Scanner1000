@@ -55,10 +55,18 @@ fun SplitDialog(
     val state = friendViewModel.state.collectAsState().value
     var showAddDialog by remember { mutableStateOf(false) }
     val sumOfCheckedProducts by productViewModel.sumOfCheckedProducts.collectAsState(initial = null)
+    val priceOfCheckedProduct by productViewModel.priceOfCheckedProduct.collectAsState(initial = null)
     val checkedFriendsCount by friendViewModel.checkedFriendsCount.collectAsState(initial = 0)
     val amountPerFriend =
         if (checkedFriendsCount > 0 && sumOfCheckedProducts != null) {
             (sumOfCheckedProducts?.div(checkedFriendsCount))?.toBigDecimal()
+                ?.setScale(2, RoundingMode.HALF_EVEN)?.toDouble()
+        } else {
+            null
+        }
+    val amountPerFriendPerProduct =
+        if (checkedFriendsCount > 0) {
+            (priceOfCheckedProduct?.div(checkedFriendsCount))?.toBigDecimal()
                 ?.setScale(2, RoundingMode.HALF_EVEN)?.toDouble()
         } else {
             null
@@ -137,11 +145,11 @@ fun SplitDialog(
 
                                 checkedProductIds.forEach { productId ->
                                     selectedFriendIds.forEach { friendId ->
-                                        if (amountPerFriend != null) {
+                                        if (amountPerFriendPerProduct != null) {
                                             productViewModel.addSharedProductInfo(
                                                 productId,
                                                 friendId,
-                                                amountPerFriend
+                                                amountPerFriendPerProduct
                                             )
                                         }
                                     }
@@ -155,6 +163,7 @@ fun SplitDialog(
 
                                 onDismiss()
 
+
                             } else {
                                 Log.d("YourScreen", "Nie wybrano żadnych znajomych")
                             }
@@ -162,13 +171,16 @@ fun SplitDialog(
                         },
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text("Zapisz",  style = MaterialTheme.typography.bodyLarge,)
+                        Text("Zapisz", style = MaterialTheme.typography.bodyLarge)
                     }
+
                 }
+
             }
         }
     }
 }
+
 
 @Composable
 fun AddFriendDialog(
@@ -210,7 +222,7 @@ fun AddFriendDialog(
                         state.name.value = it
                     },
                     textStyle = MaterialTheme.typography.bodyLarge,
-                    label = { Text("Imię", style = MaterialTheme.typography.bodyLarge ) },
+                    label = { Text("Imię", style = MaterialTheme.typography.bodyLarge) },
                     isError = errorMessage != null
                 )
                 if (errorMessage != null) {
@@ -566,12 +578,13 @@ fun AddCategoryDialog(
                                 errorMessage = "Wpisz nazwę"
                             } else {
                                 // Sprawdzamy, czy lista kategorii zawiera już kategorię o tej samej nazwie
-                                val categoryExists = categoryViewModel.state.value.categories.any {
-                                    it.title.equals(
-                                        categoryName,
-                                        ignoreCase = true
-                                    )
-                                }
+                                val categoryExists =
+                                    categoryViewModel.state.value.categories.any {
+                                        it.title.equals(
+                                            categoryName,
+                                            ignoreCase = true
+                                        )
+                                    }
                                 if (categoryExists) {
                                     errorMessage = "Kategoria o tej nazwie już istnieje"
                                 } else {
@@ -611,7 +624,8 @@ fun BalanceEditDialog(
             Column(modifier = Modifier.padding(16.dp)) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
                         text = friend.name,
@@ -632,7 +646,7 @@ fun BalanceEditDialog(
                         ),
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text("Zwrot",  style = MaterialTheme.typography.titleMedium)
+                        Text("Zwrot", style = MaterialTheme.typography.titleMedium)
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     Button(
@@ -643,7 +657,7 @@ fun BalanceEditDialog(
                         ),
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text("Wydatek",  style = MaterialTheme.typography.titleMedium)
+                        Text("Wydatek", style = MaterialTheme.typography.titleMedium)
                     }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
@@ -703,7 +717,11 @@ fun BalanceEditDialog(
                     TextButton(
                         onClick = { onDismiss() }
                     ) {
-                        Text("Anuluj", style = MaterialTheme.typography.bodyLarge, color = md_theme_light_secondary)
+                        Text(
+                            "Anuluj",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = md_theme_light_secondary
+                        )
                     }
                     Button(
                         onClick = {

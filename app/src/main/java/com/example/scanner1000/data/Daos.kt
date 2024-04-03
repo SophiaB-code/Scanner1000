@@ -99,6 +99,10 @@ interface ProductDao {
 
     @Query("SELECT MAX(id) FROM product")
     suspend fun getLastInsertedProductId(): Int
+    @Query("SELECT price FROM product WHERE isChecked = 1 LIMIT 1")
+    fun getPriceOfCheckedProduct(): Flow<Double?>
+    @Query("SELECT price FROM product WHERE id IN (:ids)")
+    fun getProductPricesByIds(ids: List<Int>): Flow<List<Double>>
 }
 
 @Dao

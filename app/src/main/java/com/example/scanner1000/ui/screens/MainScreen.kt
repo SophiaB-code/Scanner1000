@@ -52,6 +52,8 @@ import com.example.scanner1000.data.friend.FriendViewModel
 import com.example.scanner1000.data.product.ProductViewModel
 import com.example.scanner1000.ui.components.BalanceEditDialog
 import com.example.scanner1000.ui.theme.Rubik
+import java.math.BigDecimal
+import java.math.RoundingMode
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -320,9 +322,9 @@ fun FriendBalanceCard(
 
                     )
 
-
+                    val roundedBalance = BigDecimal(friend.balance).setScale(2, RoundingMode.HALF_EVEN).toString() + " zł"
                     Text(
-                        text = friend.balance.toString() + " zł",
+                        text = roundedBalance,
                         fontSize = MaterialTheme.typography.titleLarge.fontSize,
                         color = Color.Black,
                         style = TextStyle(

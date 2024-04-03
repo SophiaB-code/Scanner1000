@@ -56,6 +56,8 @@ import com.example.scanner1000.ui.components.AddFriendDialog
 import com.example.scanner1000.ui.theme.Rubik
 import com.example.scanner1000.ui.theme.md_theme_light_onPrimaryContainer
 import com.example.scanner1000.ui.theme.md_theme_light_tertiaryContainer
+import java.math.BigDecimal
+import java.math.RoundingMode
 
 @Composable
 fun FriendsScreen(
@@ -66,6 +68,7 @@ fun FriendsScreen(
     var isDeleting by remember { mutableStateOf(false) }
     val state = friendViewModel.state.collectAsState().value
     val filteredFriends = state.friends.filterNot { it.name == "Ja" }
+
 
     if (showAddDialog) {
         AddFriendDialog(
@@ -200,6 +203,7 @@ fun FriendButton(
         .collectAsState(initial = emptyList())
     val refundsForFriend by friendViewModel.getRefundsForFriend(friendId)
         .collectAsState(initial = emptyList())
+    val roundedBalance = BigDecimal(friend.balance).setScale(2, RoundingMode.HALF_EVEN).toString() + " zł"
 
     if (showAlertDialog) {
         DeleteAlertDialog(
@@ -287,7 +291,7 @@ fun FriendButton(
                 } else {
 
                     Text(
-                        text = friend.balance.toString() + " zł",
+                        text = roundedBalance,
                         fontSize = MaterialTheme.typography.titleLarge.fontSize,
                         color = Color.Black,
                         modifier = Modifier
