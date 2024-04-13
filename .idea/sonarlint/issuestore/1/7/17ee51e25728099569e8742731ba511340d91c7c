@@ -1,0 +1,8 @@
+
+2kotlin:S1128"Remove this unused import.(™òæÜ
+lkotlin:S1192À"SDefine a constant instead of duplicating this literal "^\\d*\\.?\\d{0,2}$" 3 times.(˜úŞ«
+jkotlin:S37761"RRefactor this method to reduce its Cognitive Complexity from 33 to the 15 allowed.(ã¦¬í
+pkotlin:S3776‰"RRefactor this method to reduce its Cognitive Complexity from 18 to the 15 allowed.(È›‹ùÿÿÿÿ
+pkotlin:S3776‚"RRefactor this method to reduce its Cognitive Complexity from 18 to the 15 allowed.(¡ÒòÉûÿÿÿÿ
+kkotlin:S3776ü"RRefactor this method to reduce its Cognitive Complexity from 19 to the 15 allowed.(È¶×¬
+pkotlin:S3776ß"RRefactor this method to reduce its Cognitive Complexity from 49 to the 15 allowed.(òáÛ”ûÿÿÿÿ

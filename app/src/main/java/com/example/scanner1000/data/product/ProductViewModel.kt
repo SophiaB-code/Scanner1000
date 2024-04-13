@@ -21,8 +21,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import java.math.RoundingMode
 
 
 class ProductViewModel(
@@ -35,19 +33,7 @@ class ProductViewModel(
     val priceOfCheckedProduct: Flow<Double?> = productDao.getPriceOfCheckedProduct()
     val checkedProductIds: Flow<List<Int>> = productDao.getCheckedProductsIds()
 
-    private val checkedFriendsCount: Flow<Int> = friendDao.getCheckedFriendsCount() // Załóżmy, że masz taką metodę
-
-    val amountPerFriendPerProduct: Flow<Double?> = combine(priceOfCheckedProduct, checkedFriendsCount) { price, count ->
-        if (count > 0 && price != null) {
-            BigDecimal(price / count).setScale(2, RoundingMode.HALF_EVEN).toDouble()
-        } else {
-            null
-        }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), null)
-
-
-
-        @OptIn(ExperimentalCoroutinesApi::class)
+    @OptIn(ExperimentalCoroutinesApi::class)
     var products =
         isSortedByName.flatMapLatest {
             productDao.getProductsOrderedByName()
@@ -127,6 +113,7 @@ class ProductViewModel(
             productDao.resetProductsCheckedStatus()
         }
     }
+
     fun addSharedProductInfo(productId: Int, friendId: Int, amountPerFriendPerProduct: Double) =
         viewModelScope.launch {
             val newSharedProduct = SharedProductInfo(
@@ -138,13 +125,14 @@ class ProductViewModel(
         }
 
 
-
     fun addProduct(product: Product) = viewModelScope.launch {
         productDao.upsertProduct(product)
     }
+
     fun getProductInfoForFriend(friendId: Int): Flow<List<ProductInfoForFriend>> {
         return sharedProductDao.getProductInfoForFriend(friendId)
     }
+
     private fun deleteProductAndRefundFriends(product: Product) = viewModelScope.launch {
         // Usunięcie produktu
         productDao.deleteProductById(product.id)
@@ -181,25 +169,6 @@ class ProductViewModel(
             friendDao.updateFriendBalance(sharedInfo.friendId, newBalance)
         }
     }
-    fun getCheckedProducts(): Flow<List<Product>> {
-        return productDao.getCheckedProduct()
-    }
-
-    private val _checkedProducts = MutableStateFlow<List<Product>>(emptyList())
-    val checkedProducts: StateFlow<List<Product>> = _checkedProducts
-
-    fun toggleProductChecked(product: Product, isChecked: Boolean) = viewModelScope.launch {
-        val currentList = _checkedProducts.value.toMutableList()
-        if (isChecked) {
-            // Dodaj produkt do listy, jeśli został zaznaczony
-            currentList.add(product)
-        } else {
-            // Usuń produkt z listy, jeśli został odznaczony
-            currentList.remove(product)
-        }
-        _checkedProducts.value = currentList
-    }
-
 }
 
 

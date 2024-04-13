@@ -37,19 +37,15 @@ class FriendViewModel(private val dao: FriendDao, private val refundDao: RefundD
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), FriendState())
 
-    fun onEvent(event: FriendEvent)
-    {
-        when (event)
-        {
-            is FriendEvent.DeleteFriend ->
-            {
+    fun onEvent(event: FriendEvent) {
+        when (event) {
+            is FriendEvent.DeleteFriend -> {
                 viewModelScope.launch {
                     dao.deleteFriend(event.friend)
                 }
             }
 
-            is FriendEvent.SaveFriend ->
-            {
+            is FriendEvent.SaveFriend -> {
                 val friend = Friend(
                     name = state.value.name.value,
                     balance = state.value.balance.value
@@ -67,16 +63,14 @@ class FriendViewModel(private val dao: FriendDao, private val refundDao: RefundD
                 }
             }
 
-            is FriendEvent.EditFriend ->
-            {
+            is FriendEvent.EditFriend -> {
                 viewModelScope.launch {
-                    dao.updateFriend(event.friend) // Załóżmy, że masz taką metodę
+                    dao.updateFriend(event.friend)
                 }
 
             }
 
-            else ->
-            {
+            else -> {
             }
         }
 
@@ -92,27 +86,32 @@ class FriendViewModel(private val dao: FriendDao, private val refundDao: RefundD
         dao.decreaseBalanceForCheckedFriends(amountToSubtract)
     }
 
-    fun increaseBalanceForSpecificFriend(friendId: Int, amountToAdd: Double) = viewModelScope.launch {
-        val friend = dao.getFriendById(friendId).first()
-        val newBalance = (friend.balance + amountToAdd).toBigDecimal()
-            .setScale(2, RoundingMode.HALF_EVEN).toDouble()
-        dao.updateFriend(friend.copy(balance = newBalance))
-    }
+    fun increaseBalanceForSpecificFriend(friendId: Int, amountToAdd: Double) =
+        viewModelScope.launch {
+            val friend = dao.getFriendById(friendId).first()
+            val newBalance = (friend.balance + amountToAdd).toBigDecimal()
+                .setScale(2, RoundingMode.HALF_EVEN).toDouble()
+            dao.updateFriend(friend.copy(balance = newBalance))
+        }
 
-    fun decreaseBalanceForSpecificFriend(friendId: Int, amountToSubtract: Double) = viewModelScope.launch {
-        val friend = dao.getFriendById(friendId).first()
-        val newBalance = (friend.balance - amountToSubtract).toBigDecimal()
-            .setScale(2, RoundingMode.HALF_EVEN).toDouble()
-        dao.updateFriend(friend.copy(balance = newBalance))
-    }
+    fun decreaseBalanceForSpecificFriend(friendId: Int, amountToSubtract: Double) =
+        viewModelScope.launch {
+            val friend = dao.getFriendById(friendId).first()
+            val newBalance = (friend.balance - amountToSubtract).toBigDecimal()
+                .setScale(2, RoundingMode.HALF_EVEN).toDouble()
+            dao.updateFriend(friend.copy(balance = newBalance))
+        }
 
     fun getRefundsForFriend(friendId: Int): Flow<List<Refund>> {
         return refundDao.getRefundsForFriend(friendId)
     }
-    fun addRefund(friendId: Int, amount: Double, description: String = "ZWROT") = viewModelScope.launch {
-        val refund = Refund(friendId = friendId, amount = amount, description = description)
-        refundDao.insertRefund(refund)
-    }
+
+    fun addRefund(friendId: Int, amount: Double, description: String = "ZWROT") =
+        viewModelScope.launch {
+            val refund = Refund(friendId = friendId, amount = amount, description = description)
+            refundDao.insertRefund(refund)
+        }
+
     fun addExpense(friendId: Int, amount: Double, description: String) = viewModelScope.launch {
         val refund = Refund(friendId = friendId, amount = amount, description = description)
         refundDao.insertRefund(refund)
